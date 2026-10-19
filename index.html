@@ -486,7 +486,7 @@ const idb=()=>new Promise((res,rej)=>{try{const r=indexedDB.open(IDBN,1);r.onupg
 async function dbGet(){try{const d=await idb();return await new Promise((res,rej)=>{const q=d.transaction('kv').objectStore('kv').get('state');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}catch(e){return null}}
 let saveT=0,saveNote=true;
 function persist(){clearTimeout(saveT);saveT=setTimeout(async()=>{try{const d=await idb();d.transaction('kv','readwrite').objectStore('kv').put(JSON.parse(JSON.stringify(S)),'state')}catch(e){if(saveNote){saveNote=false;toast('ذخیره‌سازی مرورگر در دسترس نیست؛ تغییرات فقط تا بستن صفحه می‌مانند.')}}},350)}
-async function loadState(){let s=await dbGet();if(!s||s.v!==1)s=seed();if(s.mv!==2){s.theme.mode='light';s.mv=2}S=s;persist()}
+async function loadState(){let s=await dbGet();if(!s||s.v!==1)s=seed();if(s.mv!==2){s.theme.mode='light';s.mv=2}delete s.adminOpen;S=s;persist()}
 /* viewer (per visitor) */
 let V={seen:{},liked:{},wish:{},cart:[],user:null,orders:[],mode:null};
 try{Object.assign(V,JSON.parse(localStorage.getItem('kifara_v')||'{}'))}catch(e){}
@@ -747,15 +747,17 @@ function targetF(o,k){const opts=TARGETS(),isUrl=String(o[k]||'').startsWith('ur
 const prodOpts=(none='بدون لینک')=>[['',none],...S.products.map(p=>[p.id,p.title])];
 
 const TABS=[['dash','نمای کلی','list'],['general','اطلاعات فروشگاه','gear'],['theme','رنگ و شیشه','palette'],['content','صفحه اصلی','home'],['hero','اسلایدر','image'],['menu','منوی کشویی','menu'],['stories','استوری‌ها','play'],['products','محصولات','box'],['nav','منوی پایین','grid'],['orders','سفارش‌ها','truck'],['settings','تنظیمات','lock']];
-function openAdminLogin(){if(S.adminOpen)return;let c;const pw=h('input',{class:'in',id:'ad-pw',type:'password',placeholder:'رمز عبور مدیر',autocomplete:'current-password',style:{direction:'ltr'}});
- const go1=e=>{e.preventDefault();if(pw.value===S.admin.pass){c();openAdmin()}else{toast('رمز اشتباه است');pw.value=''}};
+const ADM={open:false};
+const enDigits=s=>String(s||'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+function openAdminLogin(){if(ADM.open)return;let c;const pw=h('input',{class:'in',id:'ad-pw',type:'password',placeholder:'رمز عبور مدیر',autocomplete:'current-password',style:{direction:'ltr'}});
+ const go1=e=>{e.preventDefault();if(pw.value===S.admin.pass||enDigits(pw.value)===enDigits(S.admin.pass)){c();openAdmin()}else{toast('رمز اشتباه است');pw.value=''}};
  c=openModal(h('form',{class:'sh',onsubmit:go1},h('div',{class:'grab'}),h('h3',{},'ورود به پنل مدیریت'),h('div',{style:{display:'grid',gap:'12px'}},pw,S.admin.pass==='1234'?h('small',{class:'fh'},'رمز پیش‌فرض: 1234 (از بخش تنظیمات تغییرش بدهید)'):null,h('button',{class:'pbtn',type:'submit'},I('lock',18),'ورود'))),'c');setTimeout(()=>pw.focus(),80)}
 let admTab='dash';
 function openAdmin(){const body=h('div',{class:'adm-b'}),tabs=h('div',{class:'tabs',role:'tablist'});
- const close=()=>{root.remove();document.body.classList.remove('lock');S.adminOpen=false;if(window.ADMIN_PAGE){try{location.href='index.html'}catch(e){}return}try{if(location.hash==='#admin')history.replaceState(null,'',location.pathname+location.search)}catch(e){}refreshStore()};
+ const close=()=>{root.remove();document.body.classList.remove('lock');ADM.open=false;if(window.ADMIN_PAGE){try{location.href='index.html'}catch(e){}return}try{if(location.hash==='#admin')history.replaceState(null,'',location.pathname+location.search)}catch(e){}refreshStore()};
  const draw=()=>{tabs.innerHTML='';add(tabs,TABS.map(([k,l,i])=>h('button',{class:'tb'+(k===admTab?' on':''),role:'tab','aria-selected':k===admTab,onclick:()=>{admTab=k;draw()}},I(i,16),l)));body.innerHTML='';add(body,PANELS[admTab]());root.scrollTo({top:0})};
  const root=h('div',{class:'adm',role:'dialog','aria-label':'پنل مدیریت'},h('div',{class:'adm-top'},h('div',{class:'adm-t'},h('h2',{},'پنل مدیریت'),h('button',{class:'btn sec',onclick:close},I('eye',18),'مشاهده سایت')),tabs),body);
- document.body.append(root);document.body.classList.add('lock');S.adminOpen=true;draw()}
+ document.body.append(root);document.body.classList.add('lock');ADM.open=true;draw()}
 
 const PANELS={
 dash(){const rev=S.orders.filter(o=>['paid','processing','shipped','delivered'].includes(o.status)).reduce((a,o)=>a+o.total,0);
