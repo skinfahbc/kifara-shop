@@ -533,6 +533,11 @@ select.in option{color:#222}
 .ch-pv[hidden]{display:none}
 .ch-pv span{flex:1}.ch-pv img{width:52px;height:52px;border-radius:12px;object-fit:cover}
 .li .chi{max-width:200px;border-radius:12px;display:block}
+/* chat layout safety: never let a bubble/image widen the page */
+html{overflow-x:hidden;max-width:100%}
+.ch,.ch-list,.chm,.chm .chb{min-width:0}
+.chm .chb img.chi{width:min(240px,100%);height:auto}
+.ch-cp{max-width:100%}.ch-cp .in{flex:1 1 90px}
 </style>
 </head>
 <body>
