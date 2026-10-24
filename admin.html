@@ -420,6 +420,14 @@ select.in option{color:#222}
 @keyframes slin{from{opacity:0}to{opacity:1}}
 .hero .sl{will-change:opacity}
 
+/* fix: stories panel flicker on mobile Chrome (own compositing layer, lighter hero animation, no blur over animated image) */
+.hero{isolation:isolate;transform:translateZ(0)}
+.hero .sl,.hero .sl img{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.hero .sl.on img,.hero .sl.prev img{animation-name:kb2;will-change:transform}
+@keyframes kb2{from{transform:scale(1.02) translateZ(0)}to{transform:scale(1.08) translateZ(0)}}
+.hero-st{z-index:6;transform:translateZ(0);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.hero-search,.hd.over .ib{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(20,16,12,.34)}
+
 /* ===== splash ===== */
 #splash{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 30%,#3a2a1a 0%,#17110b 55%,#0b0806 100%);color:#f4dcae;transition:opacity .6s ease,transform .6s ease,visibility .6s}
 #splash.out{opacity:0;transform:scale(1.06);visibility:hidden;pointer-events:none}
