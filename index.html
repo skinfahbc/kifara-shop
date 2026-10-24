@@ -520,6 +520,19 @@ select.in option{color:#222}
 .sv-cm div{background:rgba(0,0,0,.46);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;padding:6px 12px;border-radius:16px;font-size:13px;line-height:1.7;max-width:88%;word-break:break-word;animation:cmIn .45s both}
 .sv-cm b{color:#f4dcae;margin-inline-end:6px}
 @keyframes cmIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* chat v2: admin badge, images, edit/delete */
+.adb{display:inline-block;margin-inline-start:6px;padding:0 8px;border-radius:99px;font-size:10.5px;font-weight:700;background:linear-gradient(135deg,var(--accent2),var(--accent));color:var(--on-accent);vertical-align:middle;line-height:1.8}
+.chm.adm .chb{border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.chm.adm.stk .chb{border:0;background:none}
+.chm .chb img.chi{display:block;max-width:100%;width:240px;max-height:320px;object-fit:cover;border-radius:14px;margin:4px 0;cursor:zoom-in}
+.chm .chb .ed{font-size:10.5px;margin-inline-start:4px}
+.chm .act{display:flex;gap:14px;margin-top:2px}
+.chm .act button{font-size:11.5px;opacity:.85;text-decoration:underline}
+.ch-pv{flex:0 0 100%;order:-1;display:flex;align-items:center;gap:8px;padding:4px 8px;font-size:12.5px;color:var(--muted)}
+.ch-pv[hidden]{display:none}
+.ch-pv span{flex:1}.ch-pv img{width:52px;height:52px;border-radius:12px;object-fit:cover}
+.li .chi{max-width:200px;border-radius:12px;display:block}
 </style>
 </head>
 <body>
@@ -914,43 +927,130 @@ const CHAT_SQL=`create table if not exists chat_messages (
   uid text,
   name text not null,
   avatar text,
-  text text not null check (char_length(text) between 1 and 500),
+  text text not null default '',
+  image text,
+  is_admin boolean not null default false,
+  edited boolean not null default false,
+  tokh text,
   created_at timestamptz not null default now()
 );
+alter table chat_messages add column if not exists image text;
+alter table chat_messages add column if not exists is_admin boolean not null default false;
+alter table chat_messages add column if not exists edited boolean not null default false;
+alter table chat_messages add column if not exists tokh text;
+alter table chat_messages alter column text set default '';
+alter table chat_messages drop constraint if exists chat_messages_text_check;
+alter table chat_messages drop constraint if exists chat_text_ok;
+alter table chat_messages add constraint chat_text_ok check (char_length(text) <= 500 and (char_length(text) > 0 or image is not null));
 alter table chat_messages enable row level security;
 drop policy if exists "chat read" on chat_messages;
 drop policy if exists "chat insert" on chat_messages;
+drop policy if exists "chat admin insert" on chat_messages;
+drop policy if exists "chat admin update" on chat_messages;
 drop policy if exists "chat admin delete" on chat_messages;
 create policy "chat read" on chat_messages for select using (true);
-create policy "chat insert" on chat_messages for insert with check (char_length(text) between 1 and 500);
-create policy "chat admin delete" on chat_messages for delete to authenticated using (true);`;
+create policy "chat insert" on chat_messages for insert to anon, authenticated with check (is_admin = false);
+create policy "chat admin insert" on chat_messages for insert to authenticated with check (true);
+create policy "chat admin update" on chat_messages for update to authenticated using (true) with check (true);
+create policy "chat admin delete" on chat_messages for delete to authenticated using (true);
+revoke select on chat_messages from anon, authenticated;
+grant select (id, uid, name, avatar, text, image, is_admin, edited, created_at) on chat_messages to anon, authenticated;
+create or replace function chat_edit(p_id bigint, p_uid text, p_tok text, p_text text) returns boolean
+language plpgsql security definer set search_path = public as $$
+declare n int;
+begin
+  update chat_messages set text = left(trim(p_text), 500), edited = true
+   where id = p_id and uid = p_uid and is_admin = false and tokh is not null
+     and tokh = encode(sha256(convert_to(p_tok, 'UTF8')), 'hex')
+     and (char_length(trim(p_text)) > 0 or image is not null);
+  get diagnostics n = row_count;
+  return n > 0;
+end $$;
+create or replace function chat_delete(p_id bigint, p_uid text, p_tok text) returns boolean
+language plpgsql security definer set search_path = public as $$
+declare n int;
+begin
+  delete from chat_messages
+   where id = p_id and uid = p_uid and is_admin = false and tokh is not null
+     and tokh = encode(sha256(convert_to(p_tok, 'UTF8')), 'hex');
+  get diagnostics n = row_count;
+  return n > 0;
+end $$;
+grant execute on function chat_edit(bigint, text, text, text) to anon, authenticated;
+grant execute on function chat_delete(bigint, text, text) to anon, authenticated;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('chat', 'chat', true, 3145728, array['image/jpeg','image/png','image/webp'])
+on conflict (id) do update set public = true, file_size_limit = 3145728, allowed_mime_types = array['image/jpeg','image/png','image/webp'];
+drop policy if exists "chat img upload" on storage.objects;
+drop policy if exists "chat img read" on storage.objects;
+create policy "chat img upload" on storage.objects for insert to anon, authenticated with check (bucket_id = 'chat');
+create policy "chat img read" on storage.objects for select using (bucket_id = 'chat');`;
 const STICKERS=['😍','😂','🥰','😎','🤩','😭','😡','🥳','👍','👏','🙏','💪','❤️','🔥','✨','🎉','🛍️','👜','💖','🌹','☕','🎁','😴','🤝'];
-const CH={msgs:[],last:0,timer:0,busy:false,err:'',sentAt:0};
+const CH_COLS='id,uid,name,avatar,text,image,is_admin,edited,created_at';
+const CH={msgs:[],timer:0,busy:false,err:'',sentAt:0};
+const chTmp=m=>String(m.id).startsWith('tmp');
+const chSha=async s=>{try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return ''}};
+function chTok(u){if(!u.ctok){u.ctok=uid()+uid()+uid()+uid();persist()}return u.ctok}
+async function chPickImage(f){if(!f)return '';if(!/^image\//.test(f.type)||f.type==='image/svg+xml'){toast('فقط فایل عکس مجاز است');return ''}return readFile(f,{max:1000,q:.78})}
+async function chUpload(dataUrl){const blob=await (await fetch(dataUrl)).blob(),path=Date.now().toString(36)+Math.random().toString(36).slice(2,8)+'.jpg';
+ await sbFetch('/storage/v1/object/chat/'+path,{method:'POST',raw:true,body:blob,headers:{'Content-Type':'image/jpeg'},timeout:60000});return SB.url+'/storage/v1/object/public/chat/'+path}
 async function chLoad(first){if(CH.busy)return false;CH.busy=true;let changed=false;
- try{const q=first||!CH.last?'order=id.desc&limit=80':'id=gt.'+CH.last+'&order=id.asc&limit=100';
-  let r=await sbFetch('/rest/v1/chat_messages?select=id,uid,name,avatar,text,created_at&'+q,{timeout:7000});r=r||[];if(first||!CH.last)r=r.slice().reverse();
-  CH.err='';const have=new Set(CH.msgs.map(m=>m.id));
-  r.forEach(m=>{if(!have.has(m.id)){CH.msgs.push(m);changed=true}});
-  CH.msgs=CH.msgs.filter(m=>!String(m.id).startsWith('tmp')||true);
-  CH.last=CH.msgs.reduce((a,m)=>typeof m.id==='number'&&m.id>a?m.id:a,CH.last);
-  if(CH.msgs.length>250)CH.msgs=CH.msgs.slice(-200);if(first)changed=true}
+ try{
+  if(first||!CH.msgs.some(m=>!chTmp(m))){
+   const pend=CH.msgs.filter(chTmp),r=((await sbFetch('/rest/v1/chat_messages?select='+CH_COLS+'&order=id.desc&limit=80',{timeout:7000}))||[]).reverse();
+   CH.err='';CH.msgs=r.concat(pend);changed=true}
+  else{
+   const L=(await sbFetch('/rest/v1/chat_messages?select=id,text,image,edited&order=id.desc&limit=80',{timeout:7000}))||[];CH.err='';
+   const set=new Map(L.map(x=>[x.id,x])),minId=L.length>=80?L[L.length-1].id:0,have=new Set(CH.msgs.map(m=>m.id)),need=L.filter(x=>!have.has(x.id)).map(x=>x.id);
+   if(need.length){const full=(await sbFetch('/rest/v1/chat_messages?select='+CH_COLS+'&id=in.('+need.join(',')+')&order=id.asc',{timeout:7000}))||[];full.forEach(m=>CH.msgs.push(m));changed=true}
+   CH.msgs=CH.msgs.filter(m=>{if(chTmp(m)||m.id<minId||set.has(m.id))return true;changed=true;return false});
+   CH.msgs.forEach(m=>{const x=set.get(m.id);if(x&&(x.text!==m.text||(x.image||null)!==(m.image||null)||!!x.edited!==!!m.edited)){m.text=x.text;m.image=x.image;m.edited=x.edited;changed=true}});
+   CH.msgs.sort((a,b)=>(typeof a.id==='number'?a.id:1e15)-(typeof b.id==='number'?b.id:1e15))}
+  if(CH.msgs.length>250)CH.msgs=CH.msgs.slice(-200)}
  catch(e){CH.err=e.message||'خطا'}
  CH.busy=false;return changed}
-function chatView(){clearInterval(CH.timer);CH.timer=0;const u=curUser(),me=u?u.id:null;
- const list=h('div',{class:'ch-list'}),inp=h('input',{class:'in',id:'ch-in',placeholder:'پیام خود را بنویسید…',maxlength:'500',autocomplete:'off'});
- const root=h('div',{class:'ch'}),sp=h('div',{class:'ch-sp',hidden:true},STICKERS.map(s=>h('button',{type:'button',onclick:()=>{sp.hidden=true;send('::st::'+s)}},s)));
+function chMsgEl(m,o={}){const st=String(m.text||'').startsWith('::st::');
+ return h('div',{class:'chm'+(o.me?' me':'')+(st?' stk':'')+(m.is_admin?' adm':'')},cmAvatar(m),h('div',{class:'chb'},h('b',{},m.name),m.is_admin?h('span',{class:'adb'},'ادمین'):null,
+  m.image?h('img',{class:'chi',src:m.image,alt:'',loading:'lazy',onclick:()=>openLightbox([m.image],0)}):null,
+  m.text?h('p',{},String(m.text).replace(/^::st::/,'')):null,
+  h('small',{},ago(Date.parse(m.created_at)||Date.now()),m.edited?h('span',{class:'ed'},'· ویرایش‌شده'):null),o.acts||null))}
+function chatView(){clearInterval(CH.timer);CH.timer=0;const u=curUser(),me=u?u.id:null,adm=!!sbSess();
+ let pimg='',editing=null,sending=false;
+ const list=h('div',{class:'ch-list'}),inp=h('input',{class:'in',id:'ch-in',placeholder:'پیام خود را بنویسید…',maxlength:'500',autocomplete:'off'}),root=h('div',{class:'ch'});
+ const sp=h('div',{class:'ch-sp',hidden:true},STICKERS.map(s=>h('button',{type:'button',onclick:()=>{sp.hidden=true;send('::st::'+s)}},s)));
+ const pv=h('div',{class:'ch-pv',hidden:true}),eb=h('div',{class:'ch-pv',hidden:true}),file=h('input',{type:'file',accept:'image/*',style:{display:'none'}}),sbtn=h('button',{class:'btn',type:'submit','aria-label':'ارسال'},'ارسال');
+ const drawPv=()=>{pv.innerHTML='';pv.hidden=!pimg;if(pimg)add(pv,[h('img',{src:pimg,alt:''}),h('span',{},'عکس آماده ارسال است'),h('button',{type:'button',class:'sb dg','aria-label':'حذف عکس',html:ic('close',16),onclick:()=>{pimg='';drawPv()}})])};
+ const cancelEdit=()=>{editing=null;inp.value='';eb.hidden=true;eb.innerHTML='';sbtn.textContent='ارسال'};
+ const startEdit=m=>{editing=m;pimg='';drawPv();sp.hidden=true;inp.value=m.text||'';eb.hidden=false;eb.innerHTML='';add(eb,[h('span',{},'در حال ویرایش پیام'),h('button',{type:'button',class:'sb dg','aria-label':'لغو ویرایش',html:ic('close',16),onclick:cancelEdit})]);sbtn.textContent='ذخیره';inp.focus()};
  const nearEnd=()=>innerHeight+scrollY>=document.documentElement.scrollHeight-220;
- const draw=(stick)=>{const keep=stick||nearEnd();list.innerHTML='';
-  if(CH.err&&!CH.msgs.length){add(list,h('div',{class:'empty'},/schema cache|relation|does not exist|404/i.test(CH.err)?'این بخش هنوز راه‌اندازی نشده است.':'اتصال برقرار نشد: '+CH.err));return}
-  add(list,CH.msgs.length?CH.msgs.map(m=>h('div',{class:'chm'+(me&&m.uid===me?' me':'')+(String(m.text).startsWith('::st::')?' stk':'')},cmAvatar(m),h('div',{class:'chb'},h('b',{},m.name),h('p',{},String(m.text).replace(/^::st::/,'')),h('small',{},ago(Date.parse(m.created_at)||Date.now()))))):h('div',{class:'empty'},'هنوز پیامی نیست؛ اولین نفر باشید 👋'));
+ const delMsg=async(m,btn)=>{if(!btn.dataset.s){btn.dataset.s=1;btn.textContent='مطمئنید؟';setTimeout(()=>{btn.dataset.s='';btn.textContent='حذف'},3000);return}
+  try{const mine=!!me&&m.uid===me&&!m.is_admin;let ok=true;
+   if(mine)ok=await sbFetch('/rest/v1/rpc/chat_delete',{method:'POST',body:{p_id:m.id,p_uid:me,p_tok:chTok(curUser())}});
+   else await sbFetch('/rest/v1/chat_messages?id=eq.'+m.id,{method:'DELETE',auth:true,headers:{Prefer:'return=minimal'}});
+   if(ok===false)return toast('اجازه حذف این پیام را ندارید');
+   if(editing===m)cancelEdit();CH.msgs=CH.msgs.filter(x=>x!==m);draw();toast('پیام حذف شد')}catch(e){toast('حذف نشد: '+e.message)}};
+ const draw=stick=>{const keep=stick||nearEnd();list.innerHTML='';
+  if(CH.err&&!CH.msgs.length){add(list,h('div',{class:'empty'},/schema cache|relation|does not exist|404|permission denied/i.test(CH.err)?'این بخش هنوز راه‌اندازی نشده است.':'اتصال برقرار نشد: '+CH.err));return}
+  add(list,CH.msgs.length?CH.msgs.map(m=>{const mine=!!me&&m.uid===me&&!m.is_admin;let acts=null;
+    if(!chTmp(m)&&(mine||adm)){const del=h('button',{type:'button',onclick:()=>delMsg(m,del)},'حذف');acts=h('div',{class:'act'},mine&&!String(m.text||'').startsWith('::st::')?h('button',{type:'button',onclick:()=>startEdit(m)},'ویرایش'):null,del)}
+    return chMsgEl(m,{me:mine,acts})}):h('div',{class:'empty'},'هنوز پیامی نیست؛ اولین نفر باشید 👋'));
   if(keep)requestAnimationFrame(()=>scrollTo({top:document.documentElement.scrollHeight}))};
- const send=async over=>{const uu=curUser();if(!uu){openAuth();return}const st=typeof over==='string',t=(st?over:inp.value).trim();if(!t)return;if(Date.now()-CH.sentAt<1500)return toast('کمی آهسته‌تر 🙂');CH.sentAt=Date.now();
-  const av=uu.avatar?await smallAvatar(uu.avatar,48):'',cm={id:'tmp'+uid(),uid:uu.id,name:uName(uu),avatar:av,text:t.slice(0,500),created_at:new Date().toISOString()};
-  CH.msgs.push(cm);if(!st)inp.value='';draw(true);
-  try{const rr=await sbFetch('/rest/v1/chat_messages',{method:'POST',headers:{Prefer:'return=representation'},body:{uid:uu.id,name:cm.name,avatar:av,text:cm.text},timeout:10000});const row=Array.isArray(rr)?rr[0]:rr;
-   if(row&&row.id!=null){if(CH.msgs.some(x=>x.id===row.id))CH.msgs=CH.msgs.filter(x=>x!==cm);else Object.assign(cm,row);CH.last=Math.max(CH.last,row.id)}buzz(12)}
-  catch(e){CH.msgs=CH.msgs.filter(x=>x!==cm);draw();toast('پیام ارسال نشد: '+e.message)}};
- const cp=u?h('form',{class:'ch-cp glass',onsubmit:e=>{e.preventDefault();send()}},sp,h('button',{class:'ch-st',type:'button','aria-label':'استیکر',onclick:()=>{sp.hidden=!sp.hidden}},'😊'),inp,h('button',{class:'btn',type:'submit','aria-label':'ارسال'},'ارسال')):h('div',{class:'ch-cp glass'},h('button',{class:'btn ch-login',onclick:openAuth},'برای گفتگو وارد شوید یا ثبت‌نام کنید'));
+ const saveEdit=async t=>{const m=editing,uu=curUser();if(!m||!uu)return;if(!t&&!m.image)return toast('متن پیام نمی‌تواند خالی باشد');
+  try{const ok=await sbFetch('/rest/v1/rpc/chat_edit',{method:'POST',body:{p_id:m.id,p_uid:uu.id,p_tok:chTok(uu),p_text:t.slice(0,500)}});
+   if(ok===false)return toast('اجازه ویرایش این پیام را ندارید');
+   m.text=t.slice(0,500);m.edited=true;cancelEdit();draw();toast('پیام ویرایش شد')}catch(e){toast('ویرایش نشد: '+e.message)}};
+ const send=async over=>{const uu=curUser();if(!uu){openAuth();return}const st=typeof over==='string',t=(st?over:inp.value).trim();
+  if(editing){if(st)return;return saveEdit(t)}
+  const img=st?'':pimg;if(!t&&!img)return;if(sending)return;if(Date.now()-CH.sentAt<1500)return toast('کمی آهسته‌تر 🙂');CH.sentAt=Date.now();sending=true;
+  try{let url='';if(img){toast('در حال ارسال عکس…');try{url=await chUpload(img)}catch(e){toast('عکس ارسال نشد: '+e.message);return}}
+   const av=uu.avatar?await smallAvatar(uu.avatar,48):'',tokh=await chSha(chTok(uu)),cm={id:'tmp'+uid(),uid:uu.id,name:uName(uu),avatar:av,text:t.slice(0,500),image:url||null,is_admin:false,edited:false,created_at:new Date().toISOString()};
+   CH.msgs.push(cm);if(!st){inp.value='';pimg='';drawPv()}draw(true);
+   try{const rr=await sbFetch('/rest/v1/chat_messages?select='+CH_COLS,{method:'POST',headers:{Prefer:'return=representation'},body:{uid:uu.id,name:cm.name,avatar:av,text:cm.text,image:url||null,tokh:tokh||null},timeout:10000});const row=Array.isArray(rr)?rr[0]:rr;
+    if(row&&row.id!=null){if(CH.msgs.some(x=>x.id===row.id))CH.msgs=CH.msgs.filter(x=>x!==cm);else Object.assign(cm,row);draw()}buzz(12)}
+   catch(e){CH.msgs=CH.msgs.filter(x=>x!==cm);draw();toast('پیام ارسال نشد: '+e.message)}}
+  finally{sending=false}};
+ file.onchange=async()=>{const f=file.files[0];file.value='';if(!f)return;try{const d=await chPickImage(f);if(d){pimg=d;drawPv()}}catch(e){toast(e.message||'عکس خوانده نشد')}};
+ const cp=u?h('form',{class:'ch-cp glass',onsubmit:e=>{e.preventDefault();send()}},eb,pv,sp,h('button',{class:'ch-st',type:'button','aria-label':'استیکر',onclick:()=>{if(!editing)sp.hidden=!sp.hidden}},'😊'),h('button',{class:'ch-st',type:'button','aria-label':'ارسال عکس',html:ic('image',22),onclick:()=>{if(!editing)file.click()}}),inp,file,sbtn):h('div',{class:'ch-cp glass'},h('button',{class:'btn ch-login',onclick:openAuth},'برای گفتگو وارد شوید یا ثبت‌نام کنید'));
  cp.addEventListener('focusin',e=>{if(e.target.matches('input'))setTimeout(()=>e.target.scrollIntoView({block:'nearest'}),300)});
  root.append(h('div',{class:'ch-hd glass'},h('span',{class:'ci',html:ic('comment',22)}),h('div',{},h('b',{},'گفتگوی همگانی'),h('small',{},'با بقیه‌ی مشتری‌ها گفتگو کنید'))),list,cp);
  draw(true);chLoad(true).then(()=>draw(true));
@@ -1115,13 +1215,26 @@ products(){const catCard=card('دسته‌بندی‌ها',listEd(S.categories,c
   ()=>({id:uid(),title:'محصول جدید',desc:'',price:0,oldPrice:0,badge:'',cat:S.categories[0]?.id||'',stock:10,images:[],colors:[]}),{title:p=>p.title,addLabel:'افزودن محصول'})),catCard]},
 nav(){return[card('منوی پایین صفحه',h('p',{},'ترتیب از راست به چپ نمایش داده می‌شود. آیکون تب فعال داخل حباب شناور می‌نشیند و با تغییر تب، حباب به تب بعدی می‌رود.'),
   listEd(S.nav,n=>g2(fld('عنوان',tx(n,'label')),fld('آیکون',pick(n,'icon',ICON_OPTS)),fld('صفحه',pick(n,'view',[['home','خانه'],['categories','دسته‌بندی'],['cart','سبد خرید'],['track','پیگیری خرید'],['pay','پرداخت'],['chat','گفتگوی همگانی']]))),()=>({}),{title:n=>n.label,fixed:true}))]},
-chat(){let rows=[],err='';const box=h('div',{class:'lst'});
- const draw=()=>{box.innerHTML='';if(err){box.append(h('div',{class:'li'},h('p',{style:{margin:'0 0 6px'}},'جدول گفتگو ساخته نشده یا خوانده نشد ('+err+'). این SQL را در Supabase (SQL Editor) اجرا کنید:'),h('small',{class:'fh',style:{direction:'ltr',textAlign:'left',display:'block',whiteSpace:'pre-wrap'}},CHAT_SQL),h('button',{class:'btn sec',style:{alignSelf:'flex-start',marginTop:'8px'},onclick:()=>copyText(CHAT_SQL)},'کپی SQL')));return}
-  add(box,rows.length?rows.map(c=>h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},cmAvatar(c),h('b',{},c.name)),h('small',{class:'fh'},new Date(c.created_at).toLocaleString('fa-IR'))),h('p',{style:{margin:'4px 0'}},String(c.text).startsWith('::st::')?'استیکر '+String(c.text).slice(6):c.text),
-   h('button',{class:'btn dg',style:{alignSelf:'flex-start'},onclick:e=>{const b=e.currentTarget;if(!b.dataset.s){b.dataset.s=1;b.textContent='برای حذف دوباره بزنید';return}sbFetch('/rest/v1/chat_messages?id=eq.'+c.id,{method:'DELETE',auth:true}).then(()=>{rows=rows.filter(x=>x!==c);CH.msgs=CH.msgs.filter(x=>x.id!==c.id);draw();toast('حذف شد')}).catch(er=>toast('حذف نشد: '+er.message))}},I('trash',16),'حذف پیام'))):h('div',{class:'empty'},'هنوز پیامی ثبت نشده است.'))};
- box.append(h('div',{class:'empty'},'در حال بارگیری…'));
- sbFetch('/rest/v1/chat_messages?select=id,uid,name,avatar,text,created_at&order=id.desc&limit=200',{auth:true}).then(r=>{rows=r||[];draw()}).catch(e=>{err=e.message;draw()});
- return[h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>ADM.go('chat')},'بروزرسانی'),card('پیام‌های گفتگوی همگانی',box)]},
+chat(){let rows=[],err='',pimg='',editId=null;const box=h('div',{class:'lst'});
+ const inp=h('textarea',{class:'in',rows:2,maxlength:'500',placeholder:'پیام ادمین برای گفتگوی همگانی…'}),file=h('input',{type:'file',accept:'image/*','aria-label':'انتخاب عکس'}),pv=h('div',{class:'ch-pv',hidden:true});
+ const drawPv=()=>{pv.innerHTML='';pv.hidden=!pimg;if(pimg)add(pv,[h('img',{src:pimg,alt:''}),h('span',{},'عکس آماده ارسال است'),h('button',{type:'button',class:'sb dg','aria-label':'حذف عکس',html:ic('close',16),onclick:()=>{pimg='';drawPv()}})])};
+ file.onchange=async()=>{const f=file.files[0];file.value='';if(!f)return;try{const d=await chPickImage(f);if(d){pimg=d;drawPv()}}catch(e){toast(e.message||'عکس خوانده نشد')}};
+ const delRow=(c,b)=>{if(!b.dataset.s){b.dataset.s=1;b.textContent='برای حذف دوباره بزنید';return}sbFetch('/rest/v1/chat_messages?id=eq.'+c.id,{method:'DELETE',auth:true,headers:{Prefer:'return=minimal'}}).then(()=>{rows=rows.filter(x=>x!==c);CH.msgs=CH.msgs.filter(x=>x.id!==c.id);draw();toast('حذف شد')}).catch(er=>toast('حذف نشد: '+er.message))};
+ const saveRow=(c,v)=>{const t=v.trim().slice(0,500);if(!t&&!c.image)return toast('متن نمی‌تواند خالی باشد');sbFetch('/rest/v1/chat_messages?id=eq.'+c.id,{method:'PATCH',auth:true,headers:{Prefer:'return=minimal'},body:{text:t,edited:true}}).then(()=>{c.text=t;c.edited=true;editId=null;draw();toast('ذخیره شد')}).catch(er=>toast('ذخیره نشد: '+er.message))};
+ const draw=()=>{box.innerHTML='';if(err){box.append(h('div',{class:'li'},h('p',{style:{margin:'0 0 6px'}},'جدول گفتگو ساخته نشده یا به‌روز نیست ('+err+'). این SQL را یک‌بار در Supabase (SQL Editor) اجرا کنید:'),h('small',{class:'fh',style:{direction:'ltr',textAlign:'left',display:'block',whiteSpace:'pre-wrap'}},CHAT_SQL),h('button',{class:'btn sec',style:{alignSelf:'flex-start',marginTop:'8px'},onclick:()=>copyText(CHAT_SQL)},'کپی SQL')));return}
+  add(box,rows.length?rows.map(c=>{const isSt=String(c.text||'').startsWith('::st::'),ta=h('textarea',{class:'in',rows:3,maxlength:'500',value:c.text||''});
+   return h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},cmAvatar(c),h('b',{},c.name),c.is_admin?h('span',{class:'adb'},'ادمین'):null),h('small',{class:'fh'},new Date(c.created_at).toLocaleString('fa-IR')+(c.edited?' · ویرایش‌شده':''))),
+    c.image?h('img',{class:'chi',src:c.image,alt:''}):null,
+    editId===c.id?[ta,h('div',{class:'row'},h('button',{class:'btn',onclick:()=>saveRow(c,ta.value)},'ذخیره'),h('button',{class:'btn sec',onclick:()=>{editId=null;draw()}},'لغو'))]:(c.text?h('p',{style:{margin:'4px 0'}},isSt?'استیکر '+String(c.text).slice(6):c.text):null),
+    editId===c.id?null:h('div',{class:'row'},isSt?null:h('button',{class:'btn sec',onclick:()=>{editId=c.id;draw()}},I('edit',16),'ویرایش'),h('button',{class:'btn dg',onclick:e=>delRow(c,e.currentTarget)},I('trash',16),'حذف پیام')))}):h('div',{class:'empty'},'هنوز پیامی ثبت نشده است.'))};
+ const load=()=>sbFetch('/rest/v1/chat_messages?select='+CH_COLS+'&order=id.desc&limit=200',{auth:true}).then(r=>{rows=r||[];err='';draw()}).catch(e=>{err=e.message;draw()});
+ const post=async()=>{const t=inp.value.trim();if(!t&&!pimg)return toast('متن یا عکسی بنویسید');
+  try{let url=null;if(pimg)url=await chUpload(pimg);const lg=S.store.logo;
+   await sbFetch('/rest/v1/chat_messages',{method:'POST',auth:true,headers:{Prefer:'return=minimal'},body:{uid:'admin',name:S.store.name||'ادمین',avatar:(lg&&/^https?:/.test(lg)&&lg.length<400)?lg:null,text:t,image:url,is_admin:true}});
+   inp.value='';pimg='';drawPv();toast('پیام ارسال شد');load()}catch(e){toast('ارسال نشد: '+e.message)}};
+ box.append(h('div',{class:'empty'},'در حال بارگیری…'));load();
+ return[card('ارسال پیام به‌عنوان ادمین',h('p',{},'پیام شما با برچسب «ادمین» و ظاهر متفاوت در گفتگوی همگانی نمایش داده می‌شود.'),inp,pv,h('div',{class:'row'},h('span',{class:'btn sec up'},I('image',18),'افزودن عکس',file),h('button',{class:'btn',onclick:post},I('comment',18),'ارسال'))),
+  h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>ADM.go('chat')},'بروزرسانی'),card('پیام‌های گفتگوی همگانی',box)]},
 comments(){let rows=[],noCol=false;const SQL='alter table story_comments add column if not exists avatar text;';const box=h('div',{class:'lst'});
  const draw=()=>{box.innerHTML='';if(noCol)box.append(h('div',{class:'li'},h('p',{style:{margin:'0 0 6px'}},'ستون avatar در جدول نظرها ساخته نشده؛ تا این SQL را در Supabase (SQL Editor) اجرا نکنید عکس نظردهنده‌ها برای بقیه نمایش داده نمی‌شود:'),h('small',{class:'fh',style:{direction:'ltr',textAlign:'left',display:'block'}},SQL),h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>copyText(SQL)},'کپی SQL')));add(box,rows.length?rows.slice().reverse().map(c=>{const st=S.stories.find(s=>s.id===c.story_id);return h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},cmAvatar(c),h('b',{},c.name)),h('small',{class:'fh'},new Date(c.created_at).toLocaleString('fa-IR'))),
    h('small',{class:'fh'},'استوری: '+(st?st.title:'(حذف‌شده)')),h('p',{style:{margin:'4px 0'}},c.text),
