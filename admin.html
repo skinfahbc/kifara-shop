@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>پنل مدیریت | کیف‌آرا</title>
 <meta name="theme-color" content="#0e0c0a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -466,6 +466,10 @@ select.in option{color:#222}
 .sync-row{display:flex;align-items:center;gap:10px}
 .sync-row .sync{flex:1;margin:0;text-align:start;padding:0}
 .btn.sm{padding:7px 14px;font-size:13px;white-space:nowrap}
+.sv-sheet{max-height:80vh;display:flex;flex-direction:column}
+.sv-sheet .sh{max-height:inherit;overflow-y:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.sv-sheet .cm{max-height:38vh;overflow-y:auto}
+.sv-sheet input{font-size:16px}
 </style>
 </head>
 <body>
@@ -857,7 +861,11 @@ function openStory(start){const list=S.stories;if(!list.length)return;let i=star
  const next=()=>i<list.length-1?load(i+1):stop(),prev=()=>load(Math.max(0,i-1));
  function frame(ts){if(!paused){if(vid)prog=vid.duration?vid.currentTime/vid.duration:0;else{prog+=(ts-last)/5500;}last=ts;bars.children[i].firstChild.style.width=Math.min(100,prog*100)+'%';if(prog>=1&&!vid)next()}else last=ts;raf=requestAnimationFrame(frame)}
  likeB.onclick=()=>{const s=list[i];if(V.liked[s.id]){delete V.liked[s.id];s.likes=Math.max(0,s.likes-1)}else{V.liked[s.id]=1;s.likes++}saveV();persist();paint()};
- const sheetIn=node=>{sheetOpen=true;setPause(true);const w=h('div',{class:'sv-sheet'},node);root.firstChild.append(w);const c=()=>{w.remove();sheetOpen=false;setPause(false)};return c};
+ const sheetIn=node=>{sheetOpen=true;setPause(true);const w=h('div',{class:'sv-sheet'},node);root.firstChild.append(w);
+  const vv=window.visualViewport,lift=()=>{if(!vv)return;const k=Math.max(0,Math.round(window.innerHeight-vv.height-vv.offsetTop));w.style.bottom=k+'px';w.style.maxHeight=Math.round(vv.height-20)+'px'};
+  if(vv){vv.addEventListener('resize',lift);vv.addEventListener('scroll',lift)}
+  w.addEventListener('focusin',e=>{if(e.target.matches('input,textarea'))setTimeout(()=>{lift();e.target.scrollIntoView({block:'nearest'})},250)});
+  const c=()=>{if(vv){vv.removeEventListener('resize',lift);vv.removeEventListener('scroll',lift)}w.remove();sheetOpen=false;setPause(false)};return c};
  cmB.onclick=()=>{const s=list[i];let c;const lst=h('div',{class:'cm'}),inp=h('input',{class:'in',id:'cm-in',placeholder:'نظر خود را بنویسید…'});
   const draw=()=>{lst.innerHTML='';add(lst,s.comments.length?s.comments.map(m=>h('div',{class:'cmi'},h('span',{class:'av'},m.name[0]||'؟'),h('div',{},h('b',{},m.name+' '),h('small',{},ago(m.time)),h('p',{},m.text)))):h('div',{class:'empty',style:{padding:'16px'}},'اولین نظر را شما بنویسید'))};
   draw();c=sheetIn(h('div',{class:'sh'},h('div',{class:'grab'}),h('button',{class:'xb',style:{background:'var(--field)',color:'var(--fg)'},'aria-label':'بستن',html:ic('close',18),onclick:()=>c()}),h('h3',{},'نظرات'),lst,
@@ -941,13 +949,13 @@ function openAdmin(){const body=h('div',{class:'adm-b'}),tabs=h('div',{class:'ta
  const close=()=>{if(syncT){clearTimeout(syncT);syncT=0;sbPush()}root.remove();document.body.classList.remove('lock');ADM.open=false;if(window.ADMIN_PAGE){try{location.href='index.html'}catch(e){}return}try{if(location.hash==='#admin')history.replaceState(null,'',location.pathname+location.search)}catch(e){}refreshStore()};
  const draw=()=>{tabs.innerHTML='';add(tabs,TABS.map(([k,l,i])=>h('button',{class:'tb'+(k===admTab?' on':''),role:'tab','aria-selected':k===admTab,onclick:()=>{admTab=k;draw()}},I(i,16),l)));body.innerHTML='';add(body,PANELS[admTab]());root.scrollTo({top:0})};
  const root=h('div',{class:'adm',role:'dialog','aria-label':'پنل مدیریت'},h('div',{class:'adm-top'},h('div',{class:'adm-t'},h('h2',{},'پنل مدیریت'),h('button',{class:'btn sec',onclick:close},I('eye',18),'مشاهده سایت')),h('div',{class:'sync-row'},h('small',{id:'sync-st',class:'sync'},'متصل به سرور'),h('button',{class:'btn sm',onclick:()=>{clearTimeout(syncT);sbPush()}},'انتشار روی سرور')),tabs),body);
- document.body.append(root);document.body.classList.add('lock');ADM.open=true;draw()}
+ ADM.go=k=>{admTab=k;draw()};document.body.append(root);document.body.classList.add('lock');ADM.open=true;draw()}
 
 const PANELS={
 dash(){const rev=S.orders.filter(o=>['paid','processing','shipped','delivered'].includes(o.status)).reduce((a,o)=>a+o.total,0);
  return[card('خوش آمدید',h('p',{},'همه بخش‌های سایت از همین‌جا قابل تغییر است. تغییرات بلافاصله ذخیره و روی سایت اعمال می‌شود.'),
   h('div',{class:'stat'},[[S.products.length,'محصول'],[S.stories.length,'استوری'],[S.orders.length,'سفارش'],[S.orders.filter(o=>o.status==='new'||o.status==='paid').length,'سفارش نیازمند بررسی'],[S.users.length,'کاربر ثبت‌نام‌شده'],[money(rev),'فروش تأییدشده']].map(([n,l])=>h('div',{},h('b',{},typeof n==='number'?fa(n):n),h('span',{},l))))),
-  card('میانبر',h('div',{class:'mini'},TABS.slice(1).map(([k,l,i])=>h('button',{class:'pre',onclick:()=>{admTab=k;document.querySelector('.tb.on')?.parentNode.children[TABS.findIndex(t=>t[0]===k)].click()}},I(i,22),l))))]},
+  card('میانبر',h('div',{class:'mini'},TABS.slice(1).map(([k,l,i])=>h('button',{class:'pre',type:'button',onclick:()=>{ADM.go&&ADM.go(k)}},I(i,22),l))))]},
 general(){const s=S.store;return[card('هویت فروشگاه',g2(fld('نام فروشگاه',tx(s,'name')),fld('شعار',tx(s,'tagline'))),fld('لوگو',imgField(s,'logo',{alpha:true,max:600,clearable:true}),'اگر لوگو نگذارید نام فروشگاه با فونت تزئینی نمایش داده می‌شود. فایل PNG شفاف پیشنهاد می‌شود.'),range(s,'logoH',32,84,'px','اندازه‌ی لوگو در هدر')),
   card('اطلاعات تماس',g2(fld('تلفن',tx(s,'phone')),fld('آدرس',tx(s,'address')),fld('واحد پول',tx(s,'currency')))),
   card('متن‌های سایت',g2(fld('عنوان بخش محصولات',tx(s,'productsTitle')),fld('متن پایان استوری‌ها',tx(s,'storiesHintDone')),fld('متن پایین صفحه',tx(s,'copy'))))]},
