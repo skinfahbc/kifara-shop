@@ -523,8 +523,8 @@ select.in option{color:#222}
 
 /* chat v2: admin badge, images, edit/delete */
 .adb{display:inline-block;margin-inline-start:6px;padding:0 8px;border-radius:99px;font-size:10.5px;font-weight:700;background:linear-gradient(135deg,var(--accent2),var(--accent));color:var(--on-accent);vertical-align:middle;line-height:1.8}
-.chm.adm .chb{border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
-.chm.adm.stk .chb{border:0;background:none}
+.chm.isadm .chb{border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.chm.isadm.stk .chb{border:0;background:none}
 .chm .chb img.chi{display:block;max-width:100%;width:240px;max-height:320px;object-fit:cover;border-radius:14px;margin:4px 0;cursor:zoom-in}
 .chm .chb .ed{font-size:10.5px;margin-inline-start:4px}
 .chm .act{display:flex;gap:14px;margin-top:2px}
@@ -538,6 +538,37 @@ html{overflow-x:hidden;max-width:100%}
 .ch,.ch-list,.chm,.chm .chb{min-width:0}
 .chm .chb img.chi{width:min(240px,100%);height:auto}
 .ch-cp{max-width:100%}.ch-cp .in{flex:1 1 90px}
+
+/* ===== desktop layout (>=900px) ===== */
+.dots i{cursor:pointer}
+@media (min-width:900px){
+ body{font-size:16px}
+ .app{max-width:1180px;gap:38px;padding-bottom:170px}
+ .app.home{padding-top:12px}
+ .app:not(.home){max-width:920px}
+ .hd{width:min(100%,1180px)}
+ .nv{width:min(100%,720px)}
+ .app .hero,.app .hero:not(.has-st){height:clamp(540px,68vh,660px);margin-left:0;margin-right:0;border-radius:44px}
+ .hero .tx{width:min(48%,460px)}
+ .hero h2{font-size:54px}
+ .hero p{font-size:16px;max-width:36ch}
+ .grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+ .app:not(.home) .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .feat{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+ .cats{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+ .intro{padding:34px 40px}.intro h3{font-size:38px}
+ .about{padding:38px}.about p{max-width:60ch}
+ .night{max-width:560px;margin-inline:auto}
+ .sec-h h3{font-size:23px}
+ .sim .pc{flex-basis:180px}
+ .ch{max-width:780px;margin-inline:auto;width:100%}
+ .chm .chb img.chi{width:min(300px,100%)}
+ .ov.b{align-items:center;padding:24px}
+ .ov.b .sh{border-radius:32px;width:min(100%,720px);max-height:90vh}
+ .pg .main{aspect-ratio:1/.85}
+ .toast{bottom:130px}
+}
+@media (min-width:1280px){.app{max-width:1240px}.hd{width:min(100%,1240px)}.grid{gap:24px}}
 </style>
 </head>
 <body>
@@ -755,7 +786,7 @@ function homeView(){const sh=S.show,A=S.about,hn=sh.hero?hero(sh.stories?stories
 function hero(panel){const sl=S.hero;if(!sl.length)return null;let i=0,timer,moved=false,sx=0;
  const slides=sl.map(s=>h('div',{class:'sl',onclick:()=>{if(moved)return;prod(s.productId)?openProduct(s.productId):go('categories')}},h('img',{src:s.img,alt:s.title}),
   h('div',{class:'tx'},s.badge&&h('span',{class:'chip'},I('sparkle',14),s.badge),h('h2',{},s.title),s.sub&&h('p',{},s.sub),h('span',{class:'btn-g'},'مشاهده جزئیات',I('chl',16)))));
- const dots=h('div',{class:'dots'},sl.map(()=>h('i')));const root=h('div',{class:'hero'+(panel?' has-st':'')},slides,dots,h('button',{class:'ib hero-search','aria-label':'جستجو',html:ic('search',20),onclick:openSearch}),panel);
+ const dots=h('div',{class:'dots'},sl.map((_,k)=>h('i',{onclick:()=>{show(k);run()}})));const root=h('div',{class:'hero'+(panel?' has-st':'')},slides,dots,h('button',{class:'ib hero-search','aria-label':'جستجو',html:ic('search',20),onclick:openSearch}),panel);
  let pv=-1;const show=n=>{const o=i;i=(n+sl.length)%sl.length;if(i===o&&pv>=0)return;pv=o;slides.forEach((e,k)=>{e.classList.toggle('on',k===i);e.classList.toggle('prev',k===o&&o!==i)});[...dots.children].forEach((e,k)=>e.classList.toggle('on',k===i))};
  const run=()=>{clearInterval(timer);if(sl.length>1)timer=setInterval(()=>{if(!root.isConnected)return clearInterval(timer);show(i+1)},5200)};
  root.addEventListener('pointerdown',e=>{sx=e.target.closest('.hero-st,.hero-search')?null:e.clientX;moved=false});root.addEventListener('pointerup',e=>{if(sx==null)return;const d=e.clientX-sx;if(Math.abs(d)>40){moved=true;show(i+(d<0?1:-1));run()}});
@@ -1015,7 +1046,7 @@ async function chLoad(first){if(CH.busy)return false;CH.busy=true;let changed=fa
  catch(e){CH.err=e.message||'خطا'}
  CH.busy=false;return changed}
 function chMsgEl(m,o={}){const st=String(m.text||'').startsWith('::st::');
- return h('div',{class:'chm'+(o.me?' me':'')+(st?' stk':'')+(m.is_admin?' adm':'')},cmAvatar(m),h('div',{class:'chb'},h('b',{},m.name),m.is_admin?h('span',{class:'adb'},'ادمین'):null,
+ return h('div',{class:'chm'+(o.me?' me':'')+(st?' stk':'')+(m.is_admin?' isadm':'')},cmAvatar(m),h('div',{class:'chb'},h('b',{},m.name),m.is_admin?h('span',{class:'adb'},'ادمین'):null,
   m.image?h('img',{class:'chi',src:m.image,alt:'',loading:'lazy',onclick:()=>openLightbox([m.image],0)}):null,
   m.text?h('p',{},String(m.text).replace(/^::st::/,'')):null,
   h('small',{},ago(Date.parse(m.created_at)||Date.now()),m.edited?h('span',{class:'ed'},'· ویرایش‌شده'):null),o.acts||null))}
@@ -1037,7 +1068,7 @@ function chatView(){clearInterval(CH.timer);CH.timer=0;const u=curUser(),me=u?u.
  const draw=stick=>{const keep=stick||nearEnd();list.innerHTML='';
   if(CH.err&&!CH.msgs.length){add(list,h('div',{class:'empty'},/schema cache|relation|does not exist|404|permission denied/i.test(CH.err)?'این بخش هنوز راه‌اندازی نشده است.':'اتصال برقرار نشد: '+CH.err));return}
   add(list,CH.msgs.length?CH.msgs.map(m=>{const mine=!!me&&m.uid===me&&!m.is_admin;let acts=null;
-    if(!chTmp(m)&&(mine||adm)){const del=h('button',{type:'button',onclick:()=>delMsg(m,del)},'حذف');acts=h('div',{class:'act'},mine&&!String(m.text||'').startsWith('::st::')?h('button',{type:'button',onclick:()=>startEdit(m)},'ویرایش'):null,del)}
+    if(!chTmp(m)&&(mine||(adm&&m.is_admin))){const del=h('button',{type:'button',onclick:()=>delMsg(m,del)},'حذف');acts=h('div',{class:'act'},mine&&!String(m.text||'').startsWith('::st::')?h('button',{type:'button',onclick:()=>startEdit(m)},'ویرایش'):null,del)}
     return chMsgEl(m,{me:mine,acts})}):h('div',{class:'empty'},'هنوز پیامی نیست؛ اولین نفر باشید 👋'));
   if(keep)requestAnimationFrame(()=>scrollTo({top:document.documentElement.scrollHeight}))};
  const saveEdit=async t=>{const m=editing,uu=curUser();if(!m||!uu)return;if(!t&&!m.image)return toast('متن پیام نمی‌تواند خالی باشد');
