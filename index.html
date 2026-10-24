@@ -428,6 +428,11 @@ select.in option{color:#222}
 .hero-st{z-index:6;transform:translateZ(0);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .hero-search,.hd.over .ib{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(20,16,12,.34)}
 
+/* search button back to the left; comment avatars */
+.hero .hero-search{position:absolute;overflow:visible}
+.cmi .av{overflow:hidden;padding:0}.cmi .av img{width:100%;height:100%;object-fit:cover;display:block}
+.li .av{width:32px;height:32px;border-radius:50%;font-size:13px;overflow:hidden;display:inline-grid;vertical-align:middle;margin-inline-end:6px}.li .av img{width:100%;height:100%;object-fit:cover}
+
 /* ===== splash ===== */
 #splash{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 30%,#3a2a1a 0%,#17110b 55%,#0b0806 100%);color:#f4dcae;transition:opacity .6s ease,transform .6s ease,visibility .6s}
 #splash.out{opacity:0;transform:scale(1.06);visibility:hidden;pointer-events:none}
@@ -707,7 +712,7 @@ function hero(panel){const sl=S.hero;if(!sl.length)return null;let i=0,timer,mov
  const run=()=>{clearInterval(timer);if(sl.length>1)timer=setInterval(()=>{if(!root.isConnected)return clearInterval(timer);show(i+1)},5200)};
  root.addEventListener('pointerdown',e=>{sx=e.target.closest('.hero-st,.hero-search')?null:e.clientX;moved=false});root.addEventListener('pointerup',e=>{if(sx==null)return;const d=e.clientX-sx;if(Math.abs(d)>40){moved=true;show(i+(d<0?1:-1));run()}});
  show(0);run();return root}
-function thumbEl(s){return s.type==='video'&&!s.thumb?h('video',{src:s.src+'#t=0.1',muted:true,playsinline:true,preload:'metadata'}):h('img',{src:s.thumb||s.src,alt:s.title,loading:'lazy'})}
+function thumbEl(s){if(s.type==='video'&&!s.thumb){const im=h('img',{alt:s.title,src:'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='});vidThumb(s.src).then(d=>{if(d)im.src=d});return im}return h('img',{src:s.thumb||s.src,alt:s.title,loading:'lazy'})}
 function storiesSec(inPanel){const list=S.stories,seen=list.filter(s=>V.seen[s.id]).length,all=seen===list.length;
  const row=h('div',{class:'stories',role:'list'},list.map((s,i)=>h('button',{class:'st',role:'listitem',onclick:()=>openStory(i)},h('div',{class:'ring'+(V.seen[s.id]?' seen':'')},thumbEl(s),s.type==='video'?h('span',{class:'pl',html:ic('play',11)}):null),h('span',{},s.title))));
  return h('section',{id:'stories-sec',class:inPanel?'hero-st glass':''},inPanel?h('div',{class:'st-h'},h('span',{html:ic('sparkle',16)}),h('b',{},'استوری‌ها')):null,row,h('div',{class:inPanel?'hint':'hint glass'},h('button',{class:'nb','aria-label':'بعدی',onclick:()=>row.scrollBy({left:-240,behavior:'smooth'}),html:ic('chl',18)}),
@@ -857,9 +862,19 @@ function openProfile(){const u=curUser();if(!u)return openAuth();let av=u.avatar
 function openContact(){const c=openModal(h('div',{class:'sh'},h('div',{class:'grab'}),h('h3',{},'تماس با ما'),
  h('div',{style:{display:'grid',gap:'10px'}},h('div',{class:'tgl'},h('span',{},'تلفن'),h('b',{style:{direction:'ltr'}},S.store.phone)),h('div',{class:'tgl'},h('span',{},'آدرس'),h('b',{style:{textAlign:'left'}},S.store.address)),h('div',{class:'soc'},S.socials.map(s=>h('a',{href:s.url,target:'_blank',rel:'noopener','aria-label':s.name,html:ic(s.icon,22)}))))),'c')}
 
+/* ---------- video poster (first frame) + small avatar helpers ---------- */
+const VT={};
+function vidThumb(src,max=400){if(!src)return Promise.resolve('');if(VT[src])return VT[src];
+ return VT[src]=new Promise(res=>{const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';if(!/^(data|blob):/.test(src))v.crossOrigin='anonymous';
+  let done=false;const fin=d=>{if(done)return;done=true;try{v.removeAttribute('src');v.load()}catch(e){}res(d||'')};
+  const snap=()=>{try{const sc=Math.min(1,max/Math.max(v.videoWidth||max,v.videoHeight||max)),c=document.createElement('canvas');c.width=Math.round((v.videoWidth||max)*sc);c.height=Math.round((v.videoHeight||max)*sc);c.getContext('2d').drawImage(v,0,0,c.width,c.height);fin(c.toDataURL('image/jpeg',.8))}catch(e){fin('')}};
+  v.addEventListener('loadeddata',()=>{try{v.currentTime=Math.min(.1,(v.duration||1)/2)}catch(e){snap()}});
+  v.addEventListener('seeked',snap);v.addEventListener('error',()=>fin(''));setTimeout(()=>fin(''),9000);v.src=src;v.load()})}
+function smallAvatar(src,px=56){if(!src)return Promise.resolve('');return new Promise(res=>{const im=new Image();im.onload=()=>{try{const s=Math.min(im.width,im.height),c=document.createElement('canvas');c.width=c.height=px;c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,px,px);res(c.toDataURL('image/jpeg',.7))}catch(e){res('')}};im.onerror=()=>res('');im.src=src})}
+const cmAvatar=(m,cls)=>{const u=!m.avatar&&(S.users||[]).find(x=>x.avatar&&uName(x)===m.name),src=m.avatar||(u&&u.avatar)||'';return h('span',{class:'av'+(cls?' '+cls:'')},src?h('img',{src,alt:''}):(m.name||'؟')[0])};
 /* ---------- story comments (shared, stored in Supabase) ---------- */
 const CM={all:null,t:0};
-async function loadComments(force){if(CM.all&&!force&&Date.now()-CM.t<15000)return CM.all;try{CM.all=await sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,created_at&order=created_at.asc&limit=600',{timeout:7000});CM.t=Date.now()}catch(e){CM.all=CM.all||[]}return CM.all}
+async function loadComments(force){if(CM.all&&!force&&Date.now()-CM.t<15000)return CM.all;try{try{CM.all=await sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,avatar,created_at&order=created_at.asc&limit=600',{timeout:7000})}catch(e0){CM.all=await sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,created_at&order=created_at.asc&limit=600',{timeout:7000})}CM.t=Date.now()}catch(e){CM.all=CM.all||[]}return CM.all}
 const cmOf=sid=>(CM.all||[]).filter(c=>c.story_id===sid);
 /* ---------- stories viewer ---------- */
 function openStory(start){const list=S.stories;if(!list.length)return;let i=start,prog=0,last=0,paused=false,raf=0,vid=null,hold=0,hx=0,sheetOpen=false;
@@ -877,7 +892,7 @@ function openStory(start){const list=S.stories;if(!list.length)return;let i=star
  function load(n){i=n;prog=0;last=performance.now();const s=list[i];V.seen[s.id]=1;saveV();vid=null;media.innerHTML='';
   [...bars.children].forEach((b,k)=>b.firstChild.style.width=k<i?'100%':'0');
   if(s.type==='video'){vid=h('video',{src:s.src,playsinline:true,autoplay:true});media.append(vid);vid.play().catch(()=>{vid.muted=true;vid.play().catch(()=>{})});vid.addEventListener('ended',next)}else media.append(h('img',{src:s.src,alt:s.title}));
-  hdImg.src=s.thumb||(s.type==='image'?s.src:'');hdImg.style.display=hdImg.src?'':'none';hdT.textContent=s.title;hdS.textContent=S.store.name;cap.textContent=s.caption||'';
+  hdImg.src=s.thumb||(s.type==='image'?s.src:'');hdImg.style.display=hdImg.src?'':'none';if(s.type==='video'&&!s.thumb){const sid=s.id;vidThumb(s.src).then(d=>{if(d&&list[i]&&list[i].id===sid){hdImg.src=d;hdImg.style.display=''}})}hdT.textContent=s.title;hdS.textContent=S.store.name;cap.textContent=s.caption||'';
   const pr=prod(s.productId);prB.style.display=pr?'':'none';prB.onclick=()=>{stop();openProduct(pr.id)};paint()}
  const next=()=>i<list.length-1?load(i+1):stop(),prev=()=>load(Math.max(0,i-1));
  function frame(ts){if(!paused){if(vid)prog=vid.duration?vid.currentTime/vid.duration:0;else{prog+=(ts-last)/5500;}last=ts;bars.children[i].firstChild.style.width=Math.min(100,prog*100)+'%';if(prog>=1&&!vid)next()}else last=ts;raf=requestAnimationFrame(frame)}
@@ -888,10 +903,11 @@ function openStory(start){const list=S.stories;if(!list.length)return;let i=star
   w.addEventListener('focusin',e=>{if(e.target.matches('input,textarea'))setTimeout(()=>{lift();e.target.scrollIntoView({block:'nearest'})},250)});
   const c=()=>{if(vv){vv.removeEventListener('resize',lift);vv.removeEventListener('scroll',lift)}w.remove();sheetOpen=false;setPause(false)};return c};
  cmB.onclick=()=>{const s=list[i];let c;const lst=h('div',{class:'cm'}),inp=h('input',{class:'in',id:'cm-in',placeholder:'نظر خود را بنویسید…',maxlength:'300',autocomplete:'off'});
-  const draw=()=>{lst.innerHTML='';const l=cmOf(s.id);add(lst,l.length?l.map(m=>h('div',{class:'cmi'},h('span',{class:'av'},(m.name||'؟')[0]),h('div',{},h('b',{},m.name+' '),h('small',{},ago(Date.parse(m.created_at)||Date.now())),h('p',{},m.text)))):h('div',{class:'empty',style:{padding:'16px'}},'اولین نظر را شما بنویسید'));lst.scrollTop=lst.scrollHeight};
-  const send=()=>{const t=inp.value.trim();if(!t)return;const nm=curUser()?uName(curUser()):'مهمان',cm={id:'tmp'+uid(),story_id:s.id,name:nm,text:t.slice(0,300),created_at:new Date().toISOString()};
+  const draw=()=>{lst.innerHTML='';const l=cmOf(s.id);add(lst,l.length?l.map(m=>h('div',{class:'cmi'},cmAvatar(m),h('div',{},h('b',{},m.name+' '),h('small',{},ago(Date.parse(m.created_at)||Date.now())),h('p',{},m.text)))):h('div',{class:'empty',style:{padding:'16px'}},'اولین نظر را شما بنویسید'));lst.scrollTop=lst.scrollHeight};
+  const send=async()=>{const t=inp.value.trim();if(!t)return;const u=curUser(),nm=u?uName(u):'مهمان',av=u&&u.avatar?await smallAvatar(u.avatar):'',cm={id:'tmp'+uid(),story_id:s.id,name:nm,text:t.slice(0,300),avatar:av,created_at:new Date().toISOString()};
    CM.all=CM.all||[];CM.all.push(cm);inp.value='';draw();paint();
-   sbFetch('/rest/v1/story_comments',{method:'POST',headers:{Prefer:'return=minimal'},body:{story_id:s.id,name:nm,text:cm.text},timeout:10000}).then(()=>{buzz(12)}).catch(e=>{CM.all=CM.all.filter(x=>x!==cm);draw();paint();toast('نظر ارسال نشد: '+e.message)})};
+   const post=b=>sbFetch('/rest/v1/story_comments',{method:'POST',headers:{Prefer:'return=minimal'},body:b,timeout:10000});
+   post(av?{story_id:s.id,name:nm,text:cm.text,avatar:av}:{story_id:s.id,name:nm,text:cm.text}).catch(e=>av?post({story_id:s.id,name:nm,text:cm.text}):Promise.reject(e)).then(()=>{buzz(12)}).catch(e=>{CM.all=CM.all.filter(x=>x!==cm);draw();paint();toast('نظر ارسال نشد: '+e.message)})};
   draw();loadComments(true).then(()=>{draw();paint()});
   c=sheetIn(h('div',{class:'sh'},h('div',{class:'grab'}),h('button',{class:'xb',style:{background:'var(--field)',color:'var(--fg)'},'aria-label':'بستن',html:ic('close',18),onclick:()=>c()}),h('h3',{},'نظرات'),lst,
    h('form',{class:'row',onsubmit:e=>{e.preventDefault();send()}},inp,h('button',{class:'btn',type:'submit'},'ارسال'))))};
@@ -940,7 +956,7 @@ function cdIn(p){const i=h('input',{class:'in',type:'number',min:0,placeholder:'
 function imgField(o,k,opts={}){const pv=h('div',{class:'pv'}),url=h('input',{class:'in',placeholder:'یا لینک تصویر',value:o[k]&&!String(o[k]).startsWith('data:')?o[k]:'',style:{direction:'ltr'}});
  const draw=()=>{pv.innerHTML='';const v=o[k];v?pv.append(opts.video&&o.type==='video'?h('video',{src:v,muted:true,preload:'metadata'}):h('img',{src:v,alt:''})):pv.append(I('image',26))};
  const file=h('input',{type:'file',accept:opts.video?'image/*,video/*':'image/*','aria-label':'انتخاب فایل'});
- file.onchange=async()=>{const f=file.files[0];if(!f)return;try{o[k]=await readFile(f,{max:opts.max||1400,keepAlpha:opts.alpha});if(opts.video)o.type=f.type.startsWith('video/')?'video':'image';url.value='';draw();commit();toast('بارگذاری شد')}catch(e){toast(e.message||'بارگذاری انجام نشد')}file.value=''};
+ file.onchange=async()=>{const f=file.files[0];if(!f)return;try{o[k]=await readFile(f,{max:opts.max||1400,keepAlpha:opts.alpha});if(opts.video){o.type=f.type.startsWith('video/')?'video':'image';if(o.type==='video'){const d=await vidThumb(o[k],400);if(d)o.thumb=d}else o.thumb=''}url.value='';draw();commit();toast('بارگذاری شد');if(opts.video&&typeof ADM!=='undefined'&&ADM.go)ADM.go('stories')}catch(e){toast(e.message||'بارگذاری انجام نشد')}file.value=''};
  url.onchange=()=>{o[k]=url.value.trim();if(opts.video)o.type=/\.(mp4|webm|mov)(\?|$)/i.test(o[k])?'video':'image';draw();commit()};
  draw();return h('div',{class:'imf'},pv,h('div',{class:'ct'},h('div',{class:'row'},h('span',{class:'up btn sec'},I('plus',18),opts.video?'عکس یا ویدیو':'انتخاب تصویر',file),opts.clearable?h('button',{class:'btn dg',type:'button',onclick:()=>{o[k]='';url.value='';draw();commit()}},I('trash',16)):null),url))}
 function listEd(arr,render,mk,{title,addLabel='افزودن',fixed,min=0}={}){const box=h('div',{class:'lst'});
@@ -1001,7 +1017,7 @@ hero(){return[card('اسلایدر صفحه اصلی',h('p',{},'با کلیک ر
   listEd(S.hero,s=>[fld('تصویر',imgField(s,'img',{max:1600})),g2(fld('برچسب',tx(s,'badge')),fld('عنوان',tx(s,'title')),fld('زیرعنوان',tx(s,'sub')),fld('محصول مقصد',pick(s,'productId',prodOpts('بدون لینک (رفتن به دسته‌بندی)'))))],()=>({id:uid(),img:'',badge:'',title:'اسلاید جدید',sub:'',productId:''}),{title:s=>s.title,addLabel:'افزودن اسلاید'}))]},
 menu(){const m=S.menu;return[card('بالای منو',fld('تصویر بالای منو',imgField(m,'banner',{max:1200})),g2(fld('عنوان',tx(m,'title')),fld('زیرعنوان',tx(m,'sub')))),
   card('گزینه‌های منو',listEd(m.items,it=>[g2(fld('عنوان',tx(it,'label')),fld('آیکون',pick(it,'icon',ICON_OPTS)),fld('رنگ دایره',colorF(it,'color')),fld('مقصد',targetF(it,'target')))],()=>({id:uid(),label:'گزینه جدید',icon:'star',color:'#4a7fe0',target:'view:home'}),{title:i=>i.label}))]},
-stories(){return[card('استوری‌ها',h('p',{},'عکس یا ویدیو (تا ۱۴ مگابایت) اضافه کنید. بازدیدکنندگان می‌توانند لایک، نظر و اشتراک‌گذاری کنند. استوری‌های دیده‌شده در سایت خاکستری می‌شوند.'),
+stories(){S.stories.filter(s=>s.type==='video'&&!s.thumb&&s.src).forEach(s=>vidThumb(s.src,400).then(d=>{if(d&&!s.thumb){s.thumb=d;commit()}}));return[card('استوری‌ها',h('p',{},'عکس یا ویدیو (تا ۱۴ مگابایت) اضافه کنید. بازدیدکنندگان می‌توانند لایک، نظر و اشتراک‌گذاری کنند. استوری‌های دیده‌شده در سایت خاکستری می‌شوند.'),
   h('div',{class:'row'},h('button',{class:'btn sec',onclick:()=>{V.seen={};saveV();refreshStore();toast('وضعیت دیده‌شدن در این مرورگر پاک شد')}},I('undo',16),'پاک‌کردن «دیده‌شده» (برای تست)')),
   listEd(S.stories,(s,i,draw)=>[fld('عکس یا ویدیو',imgField(s,'src',{video:true,max:1200})),s.type==='video'?fld('تصویر شاخص ویدیو (اختیاری)',imgField(s,'thumb',{max:400,clearable:true})):null,
    g2(fld('عنوان زیر دایره',tx(s,'title')),fld('محصول مرتبط',pick(s,'productId',prodOpts()))),fld('متن روی استوری',tx(s,'caption',{area:true,rows:2})),
@@ -1019,11 +1035,11 @@ products(){const catCard=card('دسته‌بندی‌ها',listEd(S.categories,c
 nav(){return[card('منوی پایین صفحه',h('p',{},'ترتیب از راست به چپ نمایش داده می‌شود. آیکون تب فعال داخل حباب شناور می‌نشیند و با تغییر تب، حباب به تب بعدی می‌رود.'),
   listEd(S.nav,n=>g2(fld('عنوان',tx(n,'label')),fld('آیکون',pick(n,'icon',ICON_OPTS)),fld('صفحه',pick(n,'view',[['home','خانه'],['categories','دسته‌بندی'],['cart','سبد خرید'],['track','پیگیری خرید'],['pay','پرداخت']]))),()=>({}),{title:n=>n.label,fixed:true}))]},
 comments(){let rows=[];const box=h('div',{class:'lst'});
- const draw=()=>{box.innerHTML='';add(box,rows.length?rows.slice().reverse().map(c=>{const st=S.stories.find(s=>s.id===c.story_id);return h('div',{class:'li'},h('div',{class:'li-h'},h('b',{},c.name),h('small',{class:'fh'},new Date(c.created_at).toLocaleString('fa-IR'))),
+ const draw=()=>{box.innerHTML='';add(box,rows.length?rows.slice().reverse().map(c=>{const st=S.stories.find(s=>s.id===c.story_id);return h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},cmAvatar(c),h('b',{},c.name)),h('small',{class:'fh'},new Date(c.created_at).toLocaleString('fa-IR'))),
    h('small',{class:'fh'},'استوری: '+(st?st.title:'(حذف‌شده)')),h('p',{style:{margin:'4px 0'}},c.text),
    h('button',{class:'btn dg',style:{alignSelf:'flex-start'},onclick:e=>{const b=e.currentTarget;if(!b.dataset.s){b.dataset.s=1;b.textContent='برای حذف دوباره بزنید';return}sbFetch('/rest/v1/story_comments?id=eq.'+c.id,{method:'DELETE',auth:true}).then(()=>{rows=rows.filter(x=>x!==c);draw();toast('حذف شد')}).catch(er=>toast('حذف نشد: '+er.message))}},I('trash',16),'حذف نظر'))}):h('div',{class:'empty'},'هنوز نظری ثبت نشده است.'))};
  box.append(h('div',{class:'empty'},'در حال بارگیری…'));
- sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,created_at&order=created_at.asc&limit=600',{auth:true}).then(r=>{rows=r;draw()}).catch(e=>{box.innerHTML='';box.append(h('small',{class:'fh'},'بارگیری نشد: '+e.message+' (اگر جدول نظرها را نساخته‌اید SQL مربوطه را اجرا کنید)'))});
+ sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,avatar,created_at&order=created_at.asc&limit=600',{auth:true}).catch(()=>sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,created_at&order=created_at.asc&limit=600',{auth:true})).then(r=>{rows=r;draw()}).catch(e=>{box.innerHTML='';box.append(h('small',{class:'fh'},'بارگیری نشد: '+e.message+' (اگر جدول نظرها را نساخته‌اید SQL مربوطه را اجرا کنید)'))});
  return[h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>ADM.go('comments')},'بروزرسانی'),card('نظرات استوری‌ها',box)]},
 orders(){const l=S.orders;return[h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:async()=>{try{await loadAdminOrders();document.querySelector('.tb.on').click();toast('بروزرسانی شد')}catch(e){toast(e.message)}}},'بروزرسانی سفارش‌ها از سرور'),card('سفارش‌ها',l.length?h('div',{class:'lst'},l.map(o=>h('div',{class:'li'},h('div',{class:'li-h'},h('b',{style:{direction:'ltr'}},o.code),h('span',{class:'pill'},stName(o.status))),
   h('div',{style:{color:'var(--muted)',fontSize:'13px'}},`${o.name} · ${o.phone}`),h('div',{style:{fontSize:'13px'}},o.address),o.note?h('small',{class:'fh'},'توضیح: '+o.note):null,
