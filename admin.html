@@ -433,6 +433,34 @@ select.in option{color:#222}
 .cmi .av{overflow:hidden;padding:0}.cmi .av img{width:100%;height:100%;object-fit:cover;display:block}
 .li .av{width:32px;height:32px;border-radius:50%;font-size:13px;overflow:hidden;display:inline-grid;vertical-align:middle;margin-inline-end:6px}.li .av img{width:100%;height:100%;object-fit:cover}
 
+/* public chat room */
+.ch{display:flex;flex-direction:column;gap:12px}
+.ch-hd{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:24px}
+.ch-hd .ci{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent2),var(--accent));color:var(--on-accent);flex:none}
+.ch-hd b{display:block;font-size:16px}.ch-hd small{color:var(--muted);font-size:12.5px}
+.ch-list{display:flex;flex-direction:column;gap:10px;min-height:40vh}
+.chm{display:flex;gap:8px;align-items:flex-end;max-width:92%}
+.chm .av{width:36px;height:36px;border-radius:50%;font-size:14px;overflow:hidden;padding:0}.chm .av img{width:100%;height:100%;object-fit:cover;display:block}
+.chm .chb{background:var(--field);border:1px solid var(--gb);padding:8px 12px;border-radius:18px 18px 18px 6px;min-width:90px;max-width:100%}
+.chm .chb b{font-size:12.5px;color:var(--accent)}.chm .chb p{margin:2px 0 0;font-size:14.5px;line-height:1.7;overflow-wrap:anywhere;white-space:pre-wrap}
+.chm .chb small{display:block;color:var(--faint);font-size:10.5px;margin-top:2px}
+.chm.me{align-self:flex-end;flex-direction:row-reverse}
+.chm.me .chb{background:linear-gradient(135deg,var(--accent2),var(--accent));color:var(--on-accent);border-color:transparent;border-radius:18px 18px 6px 18px}
+.chm.me .chb b,.chm.me .chb small{color:inherit;opacity:.8}
+.ch-cp{position:sticky;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;gap:8px;align-items:center;padding:8px;border-radius:26px}
+.ch-cp .in{border-radius:20px}.ch-cp .btn{flex:none;padding:12px 18px}
+.ch-login{width:100%;justify-content:center}
+
+/* chat stickers */
+.ch-cp{flex-wrap:wrap}
+.ch-sp{flex:0 0 100%;order:-1;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;max-height:210px;overflow:auto;padding:4px}
+.ch-sp[hidden]{display:none}
+.ch-sp button{font-size:30px;line-height:1.2;padding:6px 0;border-radius:14px}.ch-sp button:active{background:var(--field)}
+.ch-st{flex:none;width:40px;height:40px;font-size:24px;border-radius:50%;display:grid;place-items:center}
+.chm.stk .chb,.chm.me.stk .chb{background:none;border:0;padding:0 4px;min-width:0}
+.chm.stk .chb p{font-size:64px;line-height:1.15}
+.chm.stk .chb b,.chm.stk .chb small,.chm.me.stk .chb b,.chm.me.stk .chb small{color:var(--muted);opacity:1}
+
 /* ===== splash ===== */
 #splash{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 30%,#3a2a1a 0%,#17110b 55%,#0b0806 100%);color:#f4dcae;transition:opacity .6s ease,transform .6s ease,visibility .6s}
 #splash.out{opacity:0;transform:scale(1.06);visibility:hidden;pointer-events:none}
@@ -597,7 +625,7 @@ function seed(){
     title:'کیف‌آرا',text:'طراحی‌شده برای کسانی که به جزئیات اهمیت می‌دهند و دنبال یک استایل متفاوت‌اند.',nightTitle:'حالت شب',nightHint:'لمس کن برای فعال‌سازی'},
   socials:[{id:uid(),icon:'instagram',name:'اینستاگرام',url:'https://instagram.com'},{id:uid(),icon:'telegram',name:'تلگرام',url:'https://t.me'},{id:uid(),icon:'whatsapp',name:'واتساپ',url:'https://wa.me/'}],
   links:[{id:uid(),label:'درباره ما',target:'about'},{id:uid(),label:'قوانین و مقررات',target:'url:https://example.com'},{id:uid(),label:'تماس با پشتیبانی',target:'contact'}],
-  nav:[{id:'n1',label:'سبد خرید',icon:'bag',view:'cart'},{id:'n2',label:'دسته‌بندی',icon:'grid',view:'categories'},{id:'n3',label:'خانه',icon:'home',view:'home'},{id:'n4',label:'پیگیری خرید',icon:'truck',view:'track'},{id:'n5',label:'پرداخت',icon:'card',view:'pay'}],
+  nav:[{id:'n1',label:'سبد خرید',icon:'bag',view:'cart'},{id:'n2',label:'دسته‌بندی',icon:'grid',view:'categories'},{id:'n3',label:'خانه',icon:'home',view:'home'},{id:'n4',label:'پیگیری خرید',icon:'truck',view:'track'},{id:'n5',label:'گفتگو',icon:'comment',view:'chat'}],
   pay:{card:'6037-9917-0000-0000',owner:'به نام فروشگاه کیف‌آرا',bank:'بانک ملی',note:'پس از واریز، شماره پیگیری را ثبت کنید.',gateway:''},
   orders:[],users:[],admin:{pass:'1234'}}}
 
@@ -608,7 +636,9 @@ async function dbGet(){try{const d=await idb();return await new Promise((res,rej
 let saveT=0,saveNote=true;
 function persist(){clearTimeout(saveT);saveT=setTimeout(async()=>{try{const d=await idb();d.transaction('kv','readwrite').objectStore('kv').put(JSON.parse(JSON.stringify(S)),'state')}catch(e){if(saveNote){saveNote=false;toast('ذخیره‌سازی مرورگر در دسترس نیست؛ تغییرات فقط تا بستن صفحه می‌مانند.')}}},350)}
 let HAD_CACHE=false;
-function fixup(s){delete s.adminOpen;s.fx=Object.assign({reveal:true,skeleton:true,lift:true,haptic:true,fly:true},s.fx||{});s.store.logoH=s.store.logoH||52;s.orders=s.orders||[];s.users=s.users||[];s.admin=s.admin||{pass:'1234'};return s}
+function fixup(s){delete s.adminOpen;s.fx=Object.assign({reveal:true,skeleton:true,lift:true,haptic:true,fly:true},s.fx||{});s.store.logoH=s.store.logoH||52;s.orders=s.orders||[];s.users=s.users||[];s.admin=s.admin||{pass:'1234'};
+ if(!s.navChat){s.navChat=1;if(Array.isArray(s.nav)&&!s.nav.some(n=>n.view==='chat')){const i=s.nav.findIndex(n=>n.view==='pay');if(i>=0)s.nav[i]={id:s.nav[i].id,label:'گفتگو',icon:'comment',view:'chat'}}}
+ return s}
 async function loadState(){let s=await dbGet();HAD_CACHE=!!(s&&s.v===1);if(!s||s.v!==1)s=seed();if(s.mv!==2){s.theme.mode='light';s.mv=2}fixup(s);S=s;persist()}
 
 /* ---------- Supabase (REST, no SDK) ---------- */
@@ -692,7 +722,7 @@ function cartBadge(){const n=V.cart.reduce((a,c)=>a+c.qty,0);document.querySelec
 function go(v){const was=cur;cur=v;if(v!=='categories'){catFilter=null;catQ=''}renderMain();setNav(was!==v);window.scrollTo({top:0})}
 
 /* ---------- views ---------- */
-function renderMain(){const app=$('#app');app.innerHTML='';const v={home:homeView,categories:catView,cart:cartView,track:trackView,pay:payView}[cur]||homeView;add(app,[v()]);app.classList.toggle('home',!!$('.hero',app));updateHd();revealInit()}
+function renderMain(){const app=$('#app');app.innerHTML='';const v={home:homeView,categories:catView,cart:cartView,track:trackView,pay:payView,chat:chatView}[cur]||homeView;add(app,[v()]);app.classList.toggle('home',!!$('.hero',app));updateHd();revealInit()}
 function secHead(t,extra){return h('div',{class:'sec-h'},h('h3',{},t),extra)}
 function homeView(){const sh=S.show,A=S.about,hn=sh.hero?hero(sh.stories?storiesSec(true):null):null;return[
  hn,!hn&&sh.stories&&storiesSec(false),
@@ -827,7 +857,7 @@ function openMenu(){let close;const u=curUser();
  const dr=h('div',{class:'dr',role:'dialog','aria-label':'منو'},
   h('div',{class:'dr-ban'},h('img',{src:S.menu.banner,alt:''}),h('button',{class:'dr-x','aria-label':'بستن منو',html:ic('chr',20),onclick:()=>close()}),h('div',{class:'t'},h('b',{},S.menu.title),h('span',{},S.menu.sub))),
   h('button',{class:'prof glass',onclick:()=>{close();openAuth()}},avEl(u),h('span',{style:{flex:1}},h('b',{},u?u.name:'ورود / ثبت‌نام'),h('small',{},u?u.phone:'برای پیگیری و ثبت سفارش')),h('span',{class:'ch',html:ic('chl',18)})),
-  h('div',{class:'lbl'},'ناوبری'),h('div',{class:'mg glass'},S.menu.items.map(m=>h('button',{class:'mi',onclick:()=>go2(m.target)},h('span',{class:'mc',style:{background:m.color},html:ic(m.icon,22)}),h('b',{},m.label),h('span',{class:'ch',html:ic('chl',16)})))),
+  h('div',{class:'lbl'},'ناوبری'),h('div',{class:'mg glass'},[...S.menu.items,...(S.menu.items.some(m=>m.target==='view:chat')?[]:[{id:'chat',label:'گفتگوی همگانی',icon:'comment',color:'#e0794f',target:'view:chat'}])].map(m=>h('button',{class:'mi',onclick:()=>go2(m.target)},h('span',{class:'mc',style:{background:m.color},html:ic(m.icon,22)}),h('b',{},m.label),h('span',{class:'ch',html:ic('chl',16)})))),
   h('div',{class:'lbl'},'تنظیمات'),h('div',{class:'mg glass'},h('button',{class:'mi',onclick:toggleMode},h('span',{class:'mc',style:{background:'#4b5563'},html:ic('moon',22)}),h('b',{},'حالت شب'),h('span',{class:'tg'+(isDark()?' on':'')}))),
   h('div',{class:'soc',style:{marginTop:'auto'}},S.socials.map(s=>h('a',{href:s.url,target:'_blank',rel:'noopener','aria-label':s.name,html:ic(s.icon,22),style:{width:'46px',height:'46px'}}))),
   h('button',{class:'tb',style:{alignSelf:'center'},onclick:()=>{close();openAdminLogin()}},I('lock',16),'ورود مدیر'));
@@ -866,16 +896,67 @@ function openContact(){const c=openModal(h('div',{class:'sh'},h('div',{class:'gr
 const VT={};
 function vidThumb(src,max=400){if(!src)return Promise.resolve('');if(VT[src])return VT[src];
  return VT[src]=new Promise(res=>{const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';if(!/^(data|blob):/.test(src))v.crossOrigin='anonymous';
-  let done=false;const fin=d=>{if(done)return;done=true;try{v.removeAttribute('src');v.load()}catch(e){}res(d||'')};
-  const snap=()=>{try{const sc=Math.min(1,max/Math.max(v.videoWidth||max,v.videoHeight||max)),c=document.createElement('canvas');c.width=Math.round((v.videoWidth||max)*sc);c.height=Math.round((v.videoHeight||max)*sc);c.getContext('2d').drawImage(v,0,0,c.width,c.height);fin(c.toDataURL('image/jpeg',.8))}catch(e){fin('')}};
-  v.addEventListener('loadeddata',()=>{try{v.currentTime=Math.min(.1,(v.duration||1)/2)}catch(e){snap()}});
-  v.addEventListener('seeked',snap);v.addEventListener('error',()=>fin(''));setTimeout(()=>fin(''),9000);v.src=src;v.load()})}
+  let done=false,best=null,k=0;const ts=[.1,.8,1.6,2.6];const fin=d=>{if(done)return;done=true;try{v.removeAttribute('src');v.load()}catch(e){}res(d||'')};
+  const grab=()=>{const w=v.videoWidth||max,hh=v.videoHeight||max,sc=Math.min(1,max/Math.max(w,hh)),c=document.createElement('canvas');c.width=Math.round(w*sc);c.height=Math.round(hh*sc);c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+   const t=document.createElement('canvas');t.width=t.height=12;const x=t.getContext('2d');x.drawImage(c,0,0,12,12);const p=x.getImageData(0,0,12,12).data;let s=0;for(let j=0;j<p.length;j+=4)s+=p[j]*.3+p[j+1]*.59+p[j+2]*.11;return{d:c.toDataURL('image/jpeg',.8),b:s/144}};
+  const step=()=>{try{const f=grab();if(!best||f.b>best.b)best=f;if(best.b>45||++k>=ts.length)return fin(best.d);v.currentTime=Math.min(ts[k],Math.max(0,(v.duration||ts[k])-.1))}catch(e){fin(best?best.d:'')}};
+  v.addEventListener('loadeddata',()=>{try{v.currentTime=Math.min(ts[0],(v.duration||1)/2)}catch(e){fin('')}});
+  v.addEventListener('seeked',step);v.addEventListener('error',()=>fin(best?best.d:''));setTimeout(()=>fin(best?best.d:''),12000);v.src=src;v.load()})}
 function smallAvatar(src,px=56){if(!src)return Promise.resolve('');return new Promise(res=>{const im=new Image();im.onload=()=>{try{const s=Math.min(im.width,im.height),c=document.createElement('canvas');c.width=c.height=px;c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,px,px);res(c.toDataURL('image/jpeg',.7))}catch(e){res('')}};im.onerror=()=>res('');im.src=src})}
 const cmAvatar=(m,cls)=>{const u=!m.avatar&&(S.users||[]).find(x=>x.avatar&&uName(x)===m.name),src=m.avatar||(u&&u.avatar)||'';return h('span',{class:'av'+(cls?' '+cls:'')},src?h('img',{src,alt:''}):(m.name||'؟')[0])};
 /* ---------- story comments (shared, stored in Supabase) ---------- */
 const CM={all:null,t:0};
 async function loadComments(force){if(CM.all&&!force&&Date.now()-CM.t<15000)return CM.all;try{try{CM.all=await sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,avatar,created_at&order=created_at.asc&limit=600',{timeout:7000})}catch(e0){CM.all=await sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,created_at&order=created_at.asc&limit=600',{timeout:7000})}CM.t=Date.now()}catch(e){CM.all=CM.all||[]}return CM.all}
 const cmOf=sid=>(CM.all||[]).filter(c=>c.story_id===sid);
+/* ---------- public chat room (Supabase table chat_messages) ---------- */
+const CHAT_SQL=`create table if not exists chat_messages (
+  id bigint generated always as identity primary key,
+  uid text,
+  name text not null,
+  avatar text,
+  text text not null check (char_length(text) between 1 and 500),
+  created_at timestamptz not null default now()
+);
+alter table chat_messages enable row level security;
+drop policy if exists "chat read" on chat_messages;
+drop policy if exists "chat insert" on chat_messages;
+drop policy if exists "chat admin delete" on chat_messages;
+create policy "chat read" on chat_messages for select using (true);
+create policy "chat insert" on chat_messages for insert with check (char_length(text) between 1 and 500);
+create policy "chat admin delete" on chat_messages for delete to authenticated using (true);`;
+const STICKERS=['😍','😂','🥰','😎','🤩','😭','😡','🥳','👍','👏','🙏','💪','❤️','🔥','✨','🎉','🛍️','👜','💖','🌹','☕','🎁','😴','🤝'];
+const CH={msgs:[],last:0,timer:0,busy:false,err:'',sentAt:0};
+async function chLoad(first){if(CH.busy)return false;CH.busy=true;let changed=false;
+ try{const q=first||!CH.last?'order=id.desc&limit=80':'id=gt.'+CH.last+'&order=id.asc&limit=100';
+  let r=await sbFetch('/rest/v1/chat_messages?select=id,uid,name,avatar,text,created_at&'+q,{timeout:7000});r=r||[];if(first||!CH.last)r=r.slice().reverse();
+  CH.err='';const have=new Set(CH.msgs.map(m=>m.id));
+  r.forEach(m=>{if(!have.has(m.id)){CH.msgs.push(m);changed=true}});
+  CH.msgs=CH.msgs.filter(m=>!String(m.id).startsWith('tmp')||true);
+  CH.last=CH.msgs.reduce((a,m)=>typeof m.id==='number'&&m.id>a?m.id:a,CH.last);
+  if(CH.msgs.length>250)CH.msgs=CH.msgs.slice(-200);if(first)changed=true}
+ catch(e){CH.err=e.message||'خطا'}
+ CH.busy=false;return changed}
+function chatView(){clearInterval(CH.timer);CH.timer=0;const u=curUser(),me=u?u.id:null;
+ const list=h('div',{class:'ch-list'}),inp=h('input',{class:'in',id:'ch-in',placeholder:'پیام خود را بنویسید…',maxlength:'500',autocomplete:'off'});
+ const root=h('div',{class:'ch'}),sp=h('div',{class:'ch-sp',hidden:true},STICKERS.map(s=>h('button',{type:'button',onclick:()=>{sp.hidden=true;send('::st::'+s)}},s)));
+ const nearEnd=()=>innerHeight+scrollY>=document.documentElement.scrollHeight-220;
+ const draw=(stick)=>{const keep=stick||nearEnd();list.innerHTML='';
+  if(CH.err&&!CH.msgs.length){add(list,h('div',{class:'empty'},/schema cache|relation|does not exist|404/i.test(CH.err)?'این بخش هنوز راه‌اندازی نشده است.':'اتصال برقرار نشد: '+CH.err));return}
+  add(list,CH.msgs.length?CH.msgs.map(m=>h('div',{class:'chm'+(me&&m.uid===me?' me':'')+(String(m.text).startsWith('::st::')?' stk':'')},cmAvatar(m),h('div',{class:'chb'},h('b',{},m.name),h('p',{},String(m.text).replace(/^::st::/,'')),h('small',{},ago(Date.parse(m.created_at)||Date.now()))))):h('div',{class:'empty'},'هنوز پیامی نیست؛ اولین نفر باشید 👋'));
+  if(keep)requestAnimationFrame(()=>scrollTo({top:document.documentElement.scrollHeight}))};
+ const send=async over=>{const uu=curUser();if(!uu){openAuth();return}const st=typeof over==='string',t=(st?over:inp.value).trim();if(!t)return;if(Date.now()-CH.sentAt<1500)return toast('کمی آهسته‌تر 🙂');CH.sentAt=Date.now();
+  const av=uu.avatar?await smallAvatar(uu.avatar,48):'',cm={id:'tmp'+uid(),uid:uu.id,name:uName(uu),avatar:av,text:t.slice(0,500),created_at:new Date().toISOString()};
+  CH.msgs.push(cm);if(!st)inp.value='';draw(true);
+  try{const rr=await sbFetch('/rest/v1/chat_messages',{method:'POST',headers:{Prefer:'return=representation'},body:{uid:uu.id,name:cm.name,avatar:av,text:cm.text},timeout:10000});const row=Array.isArray(rr)?rr[0]:rr;
+   if(row&&row.id!=null){if(CH.msgs.some(x=>x.id===row.id))CH.msgs=CH.msgs.filter(x=>x!==cm);else Object.assign(cm,row);CH.last=Math.max(CH.last,row.id)}buzz(12)}
+  catch(e){CH.msgs=CH.msgs.filter(x=>x!==cm);draw();toast('پیام ارسال نشد: '+e.message)}};
+ const cp=u?h('form',{class:'ch-cp glass',onsubmit:e=>{e.preventDefault();send()}},sp,h('button',{class:'ch-st',type:'button','aria-label':'استیکر',onclick:()=>{sp.hidden=!sp.hidden}},'😊'),inp,h('button',{class:'btn',type:'submit','aria-label':'ارسال'},'ارسال')):h('div',{class:'ch-cp glass'},h('button',{class:'btn ch-login',onclick:openAuth},'برای گفتگو وارد شوید یا ثبت‌نام کنید'));
+ cp.addEventListener('focusin',e=>{if(e.target.matches('input'))setTimeout(()=>e.target.scrollIntoView({block:'nearest'}),300)});
+ root.append(h('div',{class:'ch-hd glass'},h('span',{class:'ci',html:ic('comment',22)}),h('div',{},h('b',{},'گفتگوی همگانی'),h('small',{},'با بقیه‌ی مشتری‌ها گفتگو کنید'))),list,cp);
+ draw(true);chLoad(true).then(()=>draw(true));
+ CH.timer=setInterval(async()=>{if(cur!=='chat'||!root.isConnected){clearInterval(CH.timer);CH.timer=0;return}if(document.hidden)return;
+  const nu=curUser();if((nu?nu.id:null)!==me){renderMain();return}if(await chLoad(false))draw(false)},4000);
+ return root}
 /* ---------- stories viewer ---------- */
 function openStory(start){const list=S.stories;if(!list.length)return;let i=start,prog=0,last=0,paused=false,raf=0,vid=null,hold=0,hx=0,sheetOpen=false;
  const bars=h('div',{class:'sv-bars'},list.map(()=>h('i',{},h('b')))),media=h('div',{class:'sv-m'}),hdImg=h('img',{alt:''}),hdT=h('b'),hdS=h('small'),cap=h('div',{class:'sv-cap'}),cmOv=h('div',{class:'sv-cm'}),
@@ -967,13 +1048,13 @@ function listEd(arr,render,mk,{title,addLabel='افزودن',fixed,min=0}={}){co
 const card=(t,...k)=>h('section',{class:'ac glass'},t?h('h3',{},t):null,...k);
 const g2=(...k)=>h('div',{class:'g2'},...k);
 const ICON_OPTS=Object.keys(ICONS).map(k=>[k,k]);
-const TARGETS=()=>[['view:home','صفحه اصلی'],['view:categories','دسته‌بندی'],['view:cart','سبد خرید'],['view:track','پیگیری سفارش'],['view:pay','پرداخت'],['about','درباره فروشگاه'],['contact','تماس با ما'],['login','ورود / ثبت‌نام'],...S.products.map(p=>['product:'+p.id,'محصول: '+p.title])];
+const TARGETS=()=>[['view:home','صفحه اصلی'],['view:categories','دسته‌بندی'],['view:cart','سبد خرید'],['view:track','پیگیری سفارش'],['view:pay','پرداخت'],['view:chat','گفتگوی همگانی'],['about','درباره فروشگاه'],['contact','تماس با ما'],['login','ورود / ثبت‌نام'],...S.products.map(p=>['product:'+p.id,'محصول: '+p.title])];
 function targetF(o,k){const opts=TARGETS(),isUrl=String(o[k]||'').startsWith('url:');const s=pick(o,k,[...opts,['url:','آدرس اینترنتی…']]);if(isUrl)s.value='url:';
  const u=h('input',{class:'in',placeholder:'https://…',style:{direction:'ltr',display:isUrl?'':'none'},value:isUrl?o[k].slice(4):''});
  s.addEventListener('change',()=>{u.style.display=s.value==='url:'?'':'none';if(s.value==='url:')o[k]='url:'+u.value;commit()});u.addEventListener('input',()=>{o[k]='url:'+u.value;commit()});return h('div',{style:{display:'grid',gap:'8px'}},s,u)}
 const prodOpts=(none='بدون لینک')=>[['',none],...S.products.map(p=>[p.id,p.title])];
 
-const TABS=[['dash','نمای کلی','list'],['general','اطلاعات فروشگاه','gear'],['theme','رنگ و شیشه','palette'],['content','صفحه اصلی','home'],['hero','اسلایدر','image'],['menu','منوی کشویی','menu'],['stories','استوری‌ها','play'],['products','محصولات','box'],['nav','منوی پایین','grid'],['orders','سفارش‌ها','truck'],['comments','نظرات استوری','comment'],['settings','تنظیمات','lock']];
+const TABS=[['dash','نمای کلی','list'],['general','اطلاعات فروشگاه','gear'],['theme','رنگ و شیشه','palette'],['content','صفحه اصلی','home'],['hero','اسلایدر','image'],['menu','منوی کشویی','menu'],['stories','استوری‌ها','play'],['products','محصولات','box'],['nav','منوی پایین','grid'],['orders','سفارش‌ها','truck'],['comments','نظرات استوری','comment'],['chat','گفتگوی همگانی','users'],['settings','تنظیمات','lock']];
 const ADM={open:false};
 const enDigits=s=>String(s||'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
 function openAdminLogin(){if(ADM.open)return;let c;const ss=sbSess();
@@ -1033,13 +1114,20 @@ products(){const catCard=card('دسته‌بندی‌ها',listEd(S.categories,c
     h('div',{},h('b',{},'رنگ‌بندی'),h('div',{style:{marginTop:'8px'}},listEd(p.colors,c=>[g2(fld('نام رنگ',tx(c,'name')),fld('رنگ',colorF(c,'hex'))),fld('عکس این رنگ (اختیاری)',imgField(c,'img',{max:1200,clearable:true}))],()=>({id:uid(),name:'رنگ جدید',hex:'#888888',img:''}),{title:c=>c.name,addLabel:'افزودن رنگ'})))]},
   ()=>({id:uid(),title:'محصول جدید',desc:'',price:0,oldPrice:0,badge:'',cat:S.categories[0]?.id||'',stock:10,images:[],colors:[]}),{title:p=>p.title,addLabel:'افزودن محصول'})),catCard]},
 nav(){return[card('منوی پایین صفحه',h('p',{},'ترتیب از راست به چپ نمایش داده می‌شود. آیکون تب فعال داخل حباب شناور می‌نشیند و با تغییر تب، حباب به تب بعدی می‌رود.'),
-  listEd(S.nav,n=>g2(fld('عنوان',tx(n,'label')),fld('آیکون',pick(n,'icon',ICON_OPTS)),fld('صفحه',pick(n,'view',[['home','خانه'],['categories','دسته‌بندی'],['cart','سبد خرید'],['track','پیگیری خرید'],['pay','پرداخت']]))),()=>({}),{title:n=>n.label,fixed:true}))]},
-comments(){let rows=[];const box=h('div',{class:'lst'});
- const draw=()=>{box.innerHTML='';add(box,rows.length?rows.slice().reverse().map(c=>{const st=S.stories.find(s=>s.id===c.story_id);return h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},cmAvatar(c),h('b',{},c.name)),h('small',{class:'fh'},new Date(c.created_at).toLocaleString('fa-IR'))),
+  listEd(S.nav,n=>g2(fld('عنوان',tx(n,'label')),fld('آیکون',pick(n,'icon',ICON_OPTS)),fld('صفحه',pick(n,'view',[['home','خانه'],['categories','دسته‌بندی'],['cart','سبد خرید'],['track','پیگیری خرید'],['pay','پرداخت'],['chat','گفتگوی همگانی']]))),()=>({}),{title:n=>n.label,fixed:true}))]},
+chat(){let rows=[],err='';const box=h('div',{class:'lst'});
+ const draw=()=>{box.innerHTML='';if(err){box.append(h('div',{class:'li'},h('p',{style:{margin:'0 0 6px'}},'جدول گفتگو ساخته نشده یا خوانده نشد ('+err+'). این SQL را در Supabase (SQL Editor) اجرا کنید:'),h('small',{class:'fh',style:{direction:'ltr',textAlign:'left',display:'block',whiteSpace:'pre-wrap'}},CHAT_SQL),h('button',{class:'btn sec',style:{alignSelf:'flex-start',marginTop:'8px'},onclick:()=>copyText(CHAT_SQL)},'کپی SQL')));return}
+  add(box,rows.length?rows.map(c=>h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},cmAvatar(c),h('b',{},c.name)),h('small',{class:'fh'},new Date(c.created_at).toLocaleString('fa-IR'))),h('p',{style:{margin:'4px 0'}},String(c.text).startsWith('::st::')?'استیکر '+String(c.text).slice(6):c.text),
+   h('button',{class:'btn dg',style:{alignSelf:'flex-start'},onclick:e=>{const b=e.currentTarget;if(!b.dataset.s){b.dataset.s=1;b.textContent='برای حذف دوباره بزنید';return}sbFetch('/rest/v1/chat_messages?id=eq.'+c.id,{method:'DELETE',auth:true}).then(()=>{rows=rows.filter(x=>x!==c);CH.msgs=CH.msgs.filter(x=>x.id!==c.id);draw();toast('حذف شد')}).catch(er=>toast('حذف نشد: '+er.message))}},I('trash',16),'حذف پیام'))):h('div',{class:'empty'},'هنوز پیامی ثبت نشده است.'))};
+ box.append(h('div',{class:'empty'},'در حال بارگیری…'));
+ sbFetch('/rest/v1/chat_messages?select=id,uid,name,avatar,text,created_at&order=id.desc&limit=200',{auth:true}).then(r=>{rows=r||[];draw()}).catch(e=>{err=e.message;draw()});
+ return[h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>ADM.go('chat')},'بروزرسانی'),card('پیام‌های گفتگوی همگانی',box)]},
+comments(){let rows=[],noCol=false;const SQL='alter table story_comments add column if not exists avatar text;';const box=h('div',{class:'lst'});
+ const draw=()=>{box.innerHTML='';if(noCol)box.append(h('div',{class:'li'},h('p',{style:{margin:'0 0 6px'}},'ستون avatar در جدول نظرها ساخته نشده؛ تا این SQL را در Supabase (SQL Editor) اجرا نکنید عکس نظردهنده‌ها برای بقیه نمایش داده نمی‌شود:'),h('small',{class:'fh',style:{direction:'ltr',textAlign:'left',display:'block'}},SQL),h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>copyText(SQL)},'کپی SQL')));add(box,rows.length?rows.slice().reverse().map(c=>{const st=S.stories.find(s=>s.id===c.story_id);return h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},cmAvatar(c),h('b',{},c.name)),h('small',{class:'fh'},new Date(c.created_at).toLocaleString('fa-IR'))),
    h('small',{class:'fh'},'استوری: '+(st?st.title:'(حذف‌شده)')),h('p',{style:{margin:'4px 0'}},c.text),
    h('button',{class:'btn dg',style:{alignSelf:'flex-start'},onclick:e=>{const b=e.currentTarget;if(!b.dataset.s){b.dataset.s=1;b.textContent='برای حذف دوباره بزنید';return}sbFetch('/rest/v1/story_comments?id=eq.'+c.id,{method:'DELETE',auth:true}).then(()=>{rows=rows.filter(x=>x!==c);draw();toast('حذف شد')}).catch(er=>toast('حذف نشد: '+er.message))}},I('trash',16),'حذف نظر'))}):h('div',{class:'empty'},'هنوز نظری ثبت نشده است.'))};
  box.append(h('div',{class:'empty'},'در حال بارگیری…'));
- sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,avatar,created_at&order=created_at.asc&limit=600',{auth:true}).catch(()=>sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,created_at&order=created_at.asc&limit=600',{auth:true})).then(r=>{rows=r;draw()}).catch(e=>{box.innerHTML='';box.append(h('small',{class:'fh'},'بارگیری نشد: '+e.message+' (اگر جدول نظرها را نساخته‌اید SQL مربوطه را اجرا کنید)'))});
+ sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,avatar,created_at&order=created_at.asc&limit=600',{auth:true}).catch(()=>{noCol=true;return sbFetch('/rest/v1/story_comments?select=id,story_id,name,text,created_at&order=created_at.asc&limit=600',{auth:true})}).then(r=>{rows=r;draw()}).catch(e=>{box.innerHTML='';box.append(h('small',{class:'fh'},'بارگیری نشد: '+e.message+' (اگر جدول نظرها را نساخته‌اید SQL مربوطه را اجرا کنید)'))});
  return[h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>ADM.go('comments')},'بروزرسانی'),card('نظرات استوری‌ها',box)]},
 orders(){const l=S.orders;return[h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:async()=>{try{await loadAdminOrders();document.querySelector('.tb.on').click();toast('بروزرسانی شد')}catch(e){toast(e.message)}}},'بروزرسانی سفارش‌ها از سرور'),card('سفارش‌ها',l.length?h('div',{class:'lst'},l.map(o=>h('div',{class:'li'},h('div',{class:'li-h'},h('b',{style:{direction:'ltr'}},o.code),h('span',{class:'pill'},stName(o.status))),
   h('div',{style:{color:'var(--muted)',fontSize:'13px'}},`${o.name} · ${o.phone}`),h('div',{style:{fontSize:'13px'}},o.address),o.note?h('small',{class:'fh'},'توضیح: '+o.note):null,
