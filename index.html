@@ -552,6 +552,29 @@ html{overflow-x:hidden;max-width:100%}
 .cmi.flash>div{outline:2px solid var(--accent)}
 .li .rq{cursor:default}
 
+/* coupons + draw banner */
+.cpn{padding:12px;border-radius:20px;display:flex;flex-direction:column;gap:8px}
+.cpn .cr{display:flex;gap:8px;align-items:center}.cpn .btn{flex:none}
+.cpm{font-size:12.5px}.cpm.ok{color:#2fa56b}.cpm.bad{color:#e5484d}.tot .dsc{color:#2fa56b}
+#draw-bn{position:fixed;z-index:55;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(calc(100% - 24px),520px);border-radius:26px;overflow:hidden;color:var(--fg);
+ background:color-mix(in srgb,var(--sheet) 72%,transparent);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid var(--gb);box-shadow:0 16px 44px rgba(0,0,0,.3);animation:bnIn .55s cubic-bezier(.2,.9,.3,1.15) both}
+#draw-bn.still{animation:none}
+@keyframes bnIn{from{opacity:0;transform:translate(-50%,-34px) scale(.96)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+.bn-h{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--gb);font-size:13px;color:var(--muted);font-weight:700}
+.bn-h .ico{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(135deg,var(--accent2),var(--accent));color:var(--on-accent)}
+.bn-h .ico img{width:100%;height:100%;object-fit:cover}.bn-h .sp{flex:1}
+.bn-x{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#e5484d}
+.bn-b{padding:12px 16px 4px;display:flex;flex-direction:column;gap:6px}
+.bn-t{font-size:16px;font-weight:800}.bn-p{font-size:13.5px;line-height:1.8;color:var(--muted)}.bn-d{font-size:12.5px;color:var(--muted)}
+.bn-cd{display:flex;gap:8px;justify-content:center;padding:6px 0 2px}
+.bn-cd div{min-width:56px;text-align:center;padding:6px 4px;border-radius:14px;background:var(--field);border:1px solid var(--gb)}
+.bn-cd b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.bn-cd small{font-size:10.5px;color:var(--muted)}
+.bn-w{display:flex;flex-direction:column;gap:2px;font-size:13.5px;padding:6px 10px;border-radius:14px;background:var(--field)}
+.bn-a{display:flex;margin:8px 16px 0;border-top:1px solid var(--gb)}
+.bn-a button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 6px;font-size:15px;font-weight:600;color:var(--accent)}
+.bn-a button.no{color:#e5484d}.bn-a button[disabled]{opacity:.55}
+.bn-a .xc{width:20px;height:20px;border-radius:50%;background:#e5484d;color:#fff;display:grid;place-items:center}
+
 /* ===== desktop layout (>=900px) ===== */
 .dots i{cursor:pointer}
 @media (min-width:900px){
@@ -698,7 +721,7 @@ async function dbGet(){try{const d=await idb();return await new Promise((res,rej
 let saveT=0,saveNote=true;
 function persist(){clearTimeout(saveT);saveT=setTimeout(async()=>{try{const d=await idb();d.transaction('kv','readwrite').objectStore('kv').put(JSON.parse(JSON.stringify(S)),'state')}catch(e){if(saveNote){saveNote=false;toast('ذخیره‌سازی مرورگر در دسترس نیست؛ تغییرات فقط تا بستن صفحه می‌مانند.')}}},350)}
 let HAD_CACHE=false;
-function fixup(s){delete s.adminOpen;s.fx=Object.assign({reveal:true,skeleton:true,lift:true,haptic:true,fly:true},s.fx||{});s.store.logoH=s.store.logoH||52;s.orders=s.orders||[];s.users=s.users||[];s.admin=s.admin||{pass:'1234'};
+function fixup(s){delete s.adminOpen;s.fx=Object.assign({reveal:true,skeleton:true,lift:true,haptic:true,fly:true},s.fx||{});s.store.logoH=s.store.logoH||52;s.orders=s.orders||[];s.users=s.users||[];s.admin=s.admin||{pass:'1234'};s.coupons=Array.isArray(s.coupons)?s.coupons:[];s.draw=Object.assign({enabled:false,id:uid(),rev:0,title:'قرعه‌کشی ویژه مشتریان',text:'با ثبت‌نام و خرید از فروشگاه در قرعه‌کشی شرکت کنید و برنده جایزه شوید.',prize:'',date:'',btn:'ثبت در قرعه‌کشی',cancel:'فعلاً نه',winners:1,result:[]},s.draw||{});
  if(!s.navChat){s.navChat=1;if(Array.isArray(s.nav)&&!s.nav.some(n=>n.view==='chat')){const i=s.nav.findIndex(n=>n.view==='pay');if(i>=0)s.nav[i]={id:s.nav[i].id,label:'گفتگو',icon:'comment',view:'chat'}}}
  return s}
 async function loadState(){let s=await dbGet();HAD_CACHE=!!(s&&s.v===1);if(!s||s.v!==1)s=seed();if(s.mv!==2){s.theme.mode='light';s.mv=2}fixup(s);S=s;persist()}
@@ -872,18 +895,24 @@ const lineInfo=l=>{const p=prod(l.pid);if(!p)return null;const c=p.colors.find(x
 function cartView(){const lines=V.cart.map(l=>({l,i:lineInfo(l)})).filter(x=>x.i);V.cart=lines.map(x=>x.l);
  if(!lines.length)return[h('h2',{class:'pg-h'},'سبد خرید'),h('div',{class:'empty glass'},I('bag',46),h('div',{},'سبد خرید شما خالی است'),h('button',{class:'btn',onclick:()=>go('home')},'مشاهده محصولات'))];
  const total=lines.reduce((a,x)=>a+x.i.price,0);
+ const cps=V.cpCode?cpState(V.cpCode):null,disc=cps&&cps.p?Math.floor(total*cps.p/100):0,pay=total-disc;
+ const cin=h('input',{class:'in',id:'o-cpn',placeholder:'کد تخفیف',value:V.cpCode||'',autocomplete:'off',autocapitalize:'off',style:{direction:'ltr',textAlign:'right',flex:1,minWidth:0}});
+ const applyCp=()=>{V.cpCode=cin.value.trim();saveV();renderMain()};
+ cin.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyCp()}});
+ const cpBox=h('div',{class:'cpn glass'},h('div',{class:'cr'},cin,h('button',{class:'btn',type:'button',onclick:applyCp},'اعمال')),V.cpCode?(cps.err?h('small',{class:'cpm bad'},cps.err):h('small',{class:'cpm ok'},'کد «'+cps.c.code+'» اعمال شد · '+fa(cps.p)+'٪ تخفیف')):null);
  const name=h('input',{class:'in',id:'o-name',placeholder:'نام و نام خانوادگی',value:curUser()?uName(curUser()):''}),phone=h('input',{class:'in',id:'o-phone',type:'tel',inputmode:'tel',placeholder:'شماره موبایل (۰۹…)',value:curUser()?.phone||''}),addr=h('textarea',{class:'in',id:'o-addr',rows:3,placeholder:'آدرس کامل و کد پستی',value:curUser()?[curUser().address,curUser().postal&&'کد پستی: '+curUser().postal].filter(Boolean).join('\n'):''}),note=h('input',{class:'in',id:'o-note',placeholder:'توضیحات (اختیاری)'});
  return[h('h2',{class:'pg-h'},'سبد خرید'),
   h('div',{style:{display:'flex',flexDirection:'column',gap:'12px'}},lines.map(({l,i})=>h('div',{class:'ci glass'},h('img',{src:i.img,alt:''}),h('div',{class:'m'},h('b',{},i.p.title),i.c?h('small',{},'رنگ: '+i.c.name):null,h('div',{class:'price'},money(i.price))),
    h('div',{style:{display:'flex',flexDirection:'column',gap:'8px',alignItems:'center'}},h('div',{class:'qty'},h('button',{'aria-label':'افزایش',html:ic('plus',14),onclick:()=>{l.qty++;saveV();renderMain();cartBadge()}}),h('b',{},fa(l.qty)),h('button',{'aria-label':'کاهش',html:ic('down',14),onclick:()=>{l.qty=Math.max(1,l.qty-1);saveV();renderMain();cartBadge()}})),
     h('button',{class:'x','aria-label':'حذف',html:ic('trash',18),onclick:()=>{V.cart=V.cart.filter(c=>c!==l);saveV();renderMain();cartBadge()}}))))),
-  h('div',{class:'tot glass'},h('div',{},h('span',{},'جمع کالاها'),h('span',{},money(total))),h('div',{},h('span',{},'هزینه ارسال'),h('span',{},'در مرحله پرداخت')),h('div',{class:'g'},h('span',{},'مبلغ قابل پرداخت'),h('span',{},money(total)))),
+  cpBox,
+  h('div',{class:'tot glass'},h('div',{},h('span',{},'جمع کالاها'),h('span',{},money(total))),disc?h('div',{class:'dsc'},h('span',{},'تخفیف ('+fa(cps.p)+'٪)'),h('span',{},'− '+money(disc))):null,h('div',{},h('span',{},'هزینه ارسال'),h('span',{},'در مرحله پرداخت')),h('div',{class:'g'},h('span',{},'مبلغ قابل پرداخت'),h('span',{},money(pay)))),
   h('form',{class:'frm glass',onsubmit:e=>{e.preventDefault();
-    const ph=normNum(phone.value);if(!name.value.trim())return toast('نام را وارد کنید');if(!/^09\d{9}$/.test(ph))return toast('شماره موبایل معتبر نیست');if(addr.value.trim().length<8)return toast('آدرس را کامل‌تر بنویسید');
+    const ph=normNum(phone.value);if(!name.value.trim())return toast('نام را وارد کنید');if(!/^09\d{9}$/.test(ph))return toast('شماره موبایل معتبر نیست');if(addr.value.trim().length<8)return toast('آدرس را کامل‌تر بنویسید');if(V.cpCode){const q=cpState(V.cpCode);if(q.err){toast(q.err+' — کد را اصلاح یا پاک کنید');return renderMain()}}
     const code='K'+Math.floor(100000+Math.random()*900000);
-    const ord={id:uid(),code,created:Date.now(),name:name.value.trim(),phone:ph,address:addr.value.trim(),note:note.value.trim(),status:'new',payRef:'',total,pending:true,
+    const ord={id:uid(),code,created:Date.now(),name:name.value.trim(),phone:ph,address:addr.value.trim(),note:note.value.trim(),status:'new',payRef:'',total:pay,subtotal:total,discount:disc,coupon:disc?{code:cps.c.code,percent:cps.p}:null,reg:!!curUser(),pending:true,
      items:lines.map(({l,i})=>({pid:l.pid,title:i.p.title,color:i.c?.name||'',qty:l.qty,price:i.p.price,img:i.img}))};S.orders.unshift(ord);sbOrderPost(Object.assign({},ord,{pending:undefined})).then(()=>{delete ord.pending;persist()}).catch(()=>{});
-    V.orders.push(code);V.cart=[];saveV();persist();cartBadge();toast('سفارش ثبت شد · کد پیگیری: '+code);go('pay')}},
+    V.orders.push(code);V.cart=[];V.cpCode='';saveV();persist();cartBadge();toast('سفارش ثبت شد · کد پیگیری: '+code);go('pay')}},
    h('h3',{style:{margin:0}},'اطلاعات ارسال'),name,phone,addr,note,h('button',{class:'pbtn',type:'submit'},I('check',20),'ثبت سفارش'))]}
 const myOrders=()=>S.orders.filter(o=>V.orders.includes(o.code));
 const stName=k=>(STATUSES.find(s=>s[0]===k)||[0,k])[1];
@@ -1253,10 +1282,61 @@ function openSearch(){let close;const inp=h('input',{id:'s-q',placeholder:'جس�
  inp.addEventListener('input',draw);draw();
  close=openModal(h('div',{class:'sh',style:{minHeight:'70vh'}},h('div',{class:'grab'}),h('div',{class:'search glass'},I('search',20),inp),h('div',{style:{height:'14px'}}),res),'b');setTimeout(()=>inp.focus(),150)}
 /* ---------- boot ---------- */
-let rT=0;function refreshStore(){clearTimeout(rT);rT=setTimeout(()=>{applyTheme();renderHeader();buildNav();renderMain();setNav(false)},120)}
-async function boot(){await loadState();const rp=sbPull(HAD_CACHE?4000:6000).then(r=>{if(applyRemote(r)&&HAD_CACHE)refreshStore()}).catch(()=>{});if(!HAD_CACHE)await rp;retryOrders();try{const n=document.getElementById('sp-name');if(n){n.textContent=S.store.name||n.textContent;if(S.store.logo){const m=document.querySelector('.sp-mark');m&&(m.innerHTML='<img src="'+S.store.logo+'" alt="" class="sp-logo">')}}}catch(e){}applyTheme();renderHeader();buildNav();renderMain();requestAnimationFrame(()=>setNav(false));document.fonts&&document.fonts.ready.then(()=>setNav(false));
+let rT=0;function refreshStore(){clearTimeout(rT);rT=setTimeout(()=>{applyTheme();renderHeader();buildNav();renderMain();setNav(false);drawBanner()},120)}
+async function boot(){await loadState();const rp=sbPull(HAD_CACHE?4000:6000).then(r=>{if(applyRemote(r)&&HAD_CACHE)refreshStore()}).catch(()=>{});if(!HAD_CACHE)await rp;retryOrders();try{const n=document.getElementById('sp-name');if(n){n.textContent=S.store.name||n.textContent;if(S.store.logo){const m=document.querySelector('.sp-mark');m&&(m.innerHTML='<img src="'+S.store.logo+'" alt="" class="sp-logo">')}}}catch(e){}applyTheme();renderHeader();buildNav();renderMain();drawBanner();requestAnimationFrame(()=>setNav(false));document.fonts&&document.fonts.ready.then(()=>setNav(false));
  let hs='';try{hs=location.hash}catch(e){}if(hs==='#admin'||window.OPEN_ADMIN)openAdminLogin();hideSplash()}
 function hideSplash(){const sp=document.getElementById('splash');if(!sp)return;const w=Math.max(0,1500-performance.now());setTimeout(()=>{sp.classList.add('out');setTimeout(()=>sp.remove(),700)},w)}
+/* ---------- coupons ---------- */
+function cpState(code){const v=String(code||'').trim().toLowerCase();if(!v)return null;const c=(S.coupons||[]).find(x=>String(x.code||'').trim().toLowerCase()===v);
+ if(!c)return{err:'کد تخفیف معتبر نیست'};if(c.active===false)return{err:'این کد تخفیف فعال نیست'};
+ const end=c.expires?Date.parse(c.expires+'T23:59:59'):0;if(end&&Date.now()>end)return{err:'این کد تخفیف منقضی شده است'};
+ const p=Math.min(100,Math.max(0,+c.percent||0));if(!p)return{err:'کد تخفیف معتبر نیست'};return{c,p}}
+/* ---------- draw (lottery) banner ---------- */
+const bnKey=()=>S.draw.id+':'+(S.draw.rev||0);
+const cdParts=ms=>{const s=Math.max(0,Math.floor(ms/1000));return[Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60]};
+async function drawJoin(btn){const D=S.draw,u=curUser();
+ if(!u){toast('برای شرکت در قرعه‌کشی ابتدا وارد شوید یا ثبت‌نام کنید');openAuth();return}
+ if(!myOrders().some(o=>o.status!=='canceled')){toast('فقط کسانی که حداقل یک خرید ثبت‌شده دارند می‌توانند شرکت کنند');return}
+ if(btn)btn.disabled=true;
+ try{await sbFetch('/rest/v1/draw_entries',{method:'POST',headers:{Prefer:'return=minimal'},body:{draw_id:D.id,phone:u.phone,name:uName(u)},timeout:10000})}
+ catch(e){if(!/duplicate|unique|23505|409/i.test(e.message||'')){if(btn)btn.disabled=false;toast(/relation|schema cache|does not exist|404/i.test(e.message||'')?'قرعه‌کشی هنوز راه‌اندازی نشده است':'ثبت نشد: '+e.message);return}}
+ (V.dr||(V.dr={}))[D.id]=1;saveV();toast('شما در قرعه‌کشی ثبت شدید 🎉');buzz(15);drawBanner()}
+function drawBanner(){let el=document.getElementById('draw-bn');const D=S.draw||{};
+ const show=D.enabled&&!window.ADMIN_PAGE&&!(V.dh||{})[bnKey()];
+ if(!show){if(el)el.remove();return}
+ const end=Date.parse(D.date)||0,ended=!!end&&end<=Date.now(),won=Array.isArray(D.result)&&D.result.length>0,reg=!!(V.dr||{})[D.id];
+ const sig=JSON.stringify([D.title,D.text,D.prize,D.date,D.btn,D.cancel,D.result,ended,reg,S.store.name,S.store.logo?1:0]);
+ if(el&&el.dataset.sig===sig)return;
+ const was=!!el;if(el)el.remove();
+ const close=()=>{(V.dh||(V.dh={}))[bnKey()]=1;saveV();const e=document.getElementById('draw-bn');if(e){e.style.transition='.3s';e.style.opacity='0';e.style.transform='translate(-50%,-24px)';setTimeout(()=>e.remove(),300)}};
+ const cd=h('div',{class:'bn-cd'},['روز','ساعت','دقیقه','ثانیه'].map(l=>h('div',{},h('b',{},'۰'),h('small',{},l))));
+ const closed=ended||won,join=h('button',{type:'button',disabled:reg||closed,onclick:e=>drawJoin(e.currentTarget)},I(reg?'check':'gift',18),reg?'ثبت‌نام شما انجام شد':(closed?'ثبت‌نام بسته شد':(D.btn||'ثبت در قرعه‌کشی')));
+ el=h('div',{id:'draw-bn',class:was?'still':'',role:'status','data-sig':sig},
+  h('div',{class:'bn-h'},h('span',{class:'ico'},S.store.logo?h('img',{src:S.store.logo,alt:''}):I('gift',14)),h('span',{},S.store.name||'فروشگاه'),h('span',{class:'sp'}),h('button',{type:'button',class:'bn-x','aria-label':'بستن',html:ic('close',16),onclick:close})),
+  h('div',{class:'bn-b'},h('div',{class:'bn-t'},D.title||'قرعه‌کشی'),D.text?h('div',{class:'bn-p'},D.text):null,D.prize?h('div',{class:'bn-p'},'🎁 جایزه: '+D.prize):null,
+   end?h('div',{class:'bn-d'},'زمان قرعه‌کشی: '+new Date(end).toLocaleString('fa-IR',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})):null,
+   end&&!ended?cd:(ended&&!won?h('div',{class:'bn-d'},'زمان قرعه‌کشی رسیده؛ نتیجه به‌زودی اعلام می‌شود.'):null),
+   won?h('div',{class:'bn-w'},h('b',{},'🏆 برنده‌ها'),D.result.map(w=>h('div',{},w.name+' · '+w.phone))):null),
+  h('div',{class:'bn-a'},won?null:join,h('button',{type:'button',class:'no',onclick:close},h('span',{class:'xc',html:ic('close',12)}),D.cancel||'فعلاً نه')));
+ document.body.append(el);drawTick()}
+function drawTick(){const el=document.getElementById('draw-bn');if(!el||!S||!S.draw)return;const end=Date.parse(S.draw.date)||0;if(!end)return;const ms=end-Date.now(),bs=el.querySelectorAll('.bn-cd b');
+ if(ms<=0){if(bs.length)drawBanner();return}cdParts(ms).forEach((v,k)=>{if(bs[k])bs[k].textContent=fa(v)})}
+setInterval(drawTick,1000);
+const DRAW_SQL=`create table if not exists draw_entries (
+  id bigint generated always as identity primary key,
+  draw_id text not null,
+  phone text not null,
+  name text not null default '',
+  created_at timestamptz not null default now(),
+  unique (draw_id, phone)
+);
+alter table draw_entries enable row level security;
+drop policy if exists "draw insert" on draw_entries;
+drop policy if exists "draw admin read" on draw_entries;
+drop policy if exists "draw admin delete" on draw_entries;
+create policy "draw insert" on draw_entries for insert to anon, authenticated with check (char_length(phone) = 11 and char_length(draw_id) <= 40);
+create policy "draw admin read" on draw_entries for select to authenticated using (true);
+create policy "draw admin delete" on draw_entries for delete to authenticated using (true);`;
 /* ---------- admin ---------- */
 const commit=()=>{persist();refreshStore();sbQueue()};
 /* ----- server sync (admin only) ----- */
@@ -1291,6 +1371,8 @@ function listEd(arr,render,mk,{title,addLabel='افزودن',fixed,min=0}={}){co
   box.append(h('div',{class:'li'},h('div',{class:'li-h'},h('b',{},title?title(it,i):'#'+fa(i+1)),h('span',{class:'li-a'},h('button',{class:'sb','aria-label':'بالا',html:ic('up',16),onclick:mv(-1)}),h('button',{class:'sb','aria-label':'پایین',html:ic('down',16),onclick:mv(1)}),
    fixed||arr.length<=min?null:h('button',{class:'sb dg','aria-label':'حذف',html:ic('trash',16),onclick:()=>{arr.splice(i,1);commit();draw()}}))),render(it,i,draw)))});
   if(!fixed)box.append(h('button',{class:'btn add',onclick:()=>{arr.push(mk());commit();draw()}},I('plus',18),addLabel))};draw();return box}
+function dateF(o,k,cb,type='date'){const i=h('input',{class:'in',type,value:o[k]||'',style:{direction:'ltr',textAlign:'right'}});i.addEventListener('change',()=>{o[k]=i.value;commit();cb&&cb()});return i}
+function onoff(o,k,on='فعال',off='غیرفعال',cb){const s=h('select',{class:'in'},h('option',{value:'1'},on),h('option',{value:'0'},off));s.value=o[k]?'1':'0';s.addEventListener('change',()=>{o[k]=s.value==='1';commit();cb&&cb()});return s}
 const card=(t,...k)=>h('section',{class:'ac glass'},t?h('h3',{},t):null,...k);
 const g2=(...k)=>h('div',{class:'g2'},...k);
 const ICON_OPTS=Object.keys(ICONS).map(k=>[k,k]);
@@ -1300,7 +1382,7 @@ function targetF(o,k){const opts=TARGETS(),isUrl=String(o[k]||'').startsWith('ur
  s.addEventListener('change',()=>{u.style.display=s.value==='url:'?'':'none';if(s.value==='url:')o[k]='url:'+u.value;commit()});u.addEventListener('input',()=>{o[k]='url:'+u.value;commit()});return h('div',{style:{display:'grid',gap:'8px'}},s,u)}
 const prodOpts=(none='بدون لینک')=>[['',none],...S.products.map(p=>[p.id,p.title])];
 
-const TABS=[['dash','نمای کلی','list'],['general','اطلاعات فروشگاه','gear'],['theme','رنگ و شیشه','palette'],['content','صفحه اصلی','home'],['hero','اسلایدر','image'],['menu','منوی کشویی','menu'],['stories','استوری‌ها','play'],['products','محصولات','box'],['nav','منوی پایین','grid'],['orders','سفارش‌ها','truck'],['comments','نظرات استوری','comment'],['chat','گفتگوی همگانی','users'],['settings','تنظیمات','lock']];
+const TABS=[['dash','نمای کلی','list'],['general','اطلاعات فروشگاه','gear'],['theme','رنگ و شیشه','palette'],['content','صفحه اصلی','home'],['hero','اسلایدر','image'],['menu','منوی کشویی','menu'],['stories','استوری‌ها','play'],['products','محصولات','box'],['nav','منوی پایین','grid'],['orders','سفارش‌ها','truck'],['comments','نظرات استوری','comment'],['chat','گفتگوی همگانی','users'],['coupons','کد تخفیف','tag'],['draw','قرعه‌کشی','gift'],['settings','تنظیمات','lock']];
 const ADM={open:false};
 const enDigits=s=>String(s||'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
 function openAdminLogin(){if(ADM.open)return;let c;const ss=sbSess();
@@ -1321,6 +1403,38 @@ function openAdmin(){const body=h('div',{class:'adm-b'}),tabs=h('div',{class:'ta
  ADM.go=k=>{admTab=k;draw()};document.body.append(root);document.body.classList.add('lock');ADM.open=true;draw()}
 
 const PANELS={
+coupons(){const info=c=>{const e=c.expires?Date.parse(c.expires+'T23:59:59'):0;if(c.active===false||!c.active)return'غیرفعال';if(e&&Date.now()>e)return'⛔ منقضی شده';return'✅ فعال'+(c.expires?' تا '+new Date(c.expires+'T12:00:00').toLocaleDateString('fa-IR'):' (بدون انقضا)')};
+ const used=c=>S.orders.filter(o=>o.coupon&&String(o.coupon.code).toLowerCase()===String(c.code||'').trim().toLowerCase()).length;
+ return[card('کدهای تخفیف',h('p',{},'هر کد یک درصد تخفیف و یک تاریخ انقضا دارد. مشتری کد را در صفحه تکمیل خرید وارد می‌کند؛ بعد از تاریخ انقضا پیام «این کد تخفیف منقضی شده است» می‌بیند. تاریخ انقضا تا پایان همان روز معتبر است و اگر خالی باشد کد انقضا ندارد. بزرگی و کوچکی حروف مهم نیست.'),
+  listEd(S.coupons,(c,i,draw)=>[g2(fld('کد تخفیف',tx(c,'code',{ph:'مثلاً takhfif68'})),fld('درصد تخفیف (۱ تا ۱۰۰)',tx(c,'percent',{num:true}))),g2(fld('تاریخ انقضا',dateF(c,'expires',draw)),fld('وضعیت',onoff(c,'active','فعال','غیرفعال',draw))),h('small',{class:'fh'},info(c)+' · '+fa(used(c))+' بار استفاده (طبق سفارش‌های بارگذاری‌شده)')],
+   ()=>({id:uid(),code:'',percent:10,expires:'',active:true}),{title:c=>(c.code||'کد جدید')+' · '+fa(+c.percent||0)+'٪',addLabel:'افزودن کد تخفیف'}))]},
+draw(){const D=S.draw,okSt=['paid','processing','shipped','delivered'];let entries=null,err='',onlyPaid=true,lastPick=null;const list=h('div',{class:'lst'}),res=h('div',{class:'lst'});
+ const elig=()=>{const ph=new Set(S.orders.filter(o=>o.status!=='canceled'&&(!onlyPaid||okSt.includes(o.status))).map(o=>o.phone));return(entries||[]).filter(e=>ph.has(e.phone))};
+ const nOrd=p=>S.orders.filter(o=>o.phone===p&&o.status!=='canceled').length,mask=p=>String(p).slice(0,4)+'***'+String(p).slice(-3);
+ const drawRes=()=>{res.innerHTML='';
+  if(lastPick)add(res,h('div',{class:'li'},h('b',{},'🏆 برنده‌های این دور'),lastPick.map(w=>h('div',{style:{fontSize:'14px'}},w.name+' · '+w.phone)),h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{D.result=lastPick.map(w=>({name:w.name,phone:mask(w.phone)}));D.drawnAt=Date.now();commit();toast('نتیجه روی سایت اعلام شد');drawRes()}},'ذخیره و اعلام روی سایت'),h('button',{class:'btn sec',onclick:pickW},'انتخاب دوباره'))));
+  if(D.result&&D.result.length)add(res,h('div',{class:'li'},h('b',{},'نتیجه اعلام‌شده روی سایت'),D.result.map(w=>h('div',{style:{fontSize:'13px'}},w.name+' · '+w.phone)),h('button',{class:'btn dg',style:{alignSelf:'flex-start'},onclick:()=>{D.result=[];commit();drawRes()}},I('trash',16),'پاک‌کردن نتیجه')))};
+ const pickW=()=>{const L=elig();if(!L.length)return toast('شرکت‌کننده‌ی واجد شرایطی نیست؛ اول «بارگیری» را بزنید');const n=Math.min(Math.max(1,Math.floor(+D.winners)||1),L.length),pool=L.slice(),w=[],rnd=m=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%m};
+  for(let k=0;k<n;k++)w.push(pool.splice(rnd(pool.length),1)[0]);lastPick=w.map(e=>({name:e.name||'—',phone:e.phone}));drawRes()};
+ const drawList=()=>{list.innerHTML='';
+  if(err){add(list,h('div',{class:'li'},h('p',{style:{margin:0}},/relation|does not exist|schema cache|404/i.test(err)?'جدول شرکت‌کننده‌ها ساخته نشده؛ SQL پایین همین صفحه را یک‌بار اجرا کنید.':'بارگیری نشد: '+err)));return}
+  if(!entries){add(list,h('div',{class:'empty'},'برای دیدن شرکت‌کننده‌ها روی «بارگیری» بزنید.'));return}
+  const E=elig();
+  add(list,[h('small',{class:'fh'},'ثبت‌شده: '+fa(entries.length)+' نفر · واجد شرایط: '+fa(E.length)+' نفر'),...entries.map(e=>h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},h('b',{},e.name||'—'),' · ',e.phone),h('span',{class:'pill'},E.includes(e)?'واجد شرایط':'بدون خرید تأییدشده')),h('small',{class:'fh'},fa(nOrd(e.phone))+' سفارش · '+new Date(e.created_at).toLocaleString('fa-IR')),
+   h('button',{class:'btn dg',style:{alignSelf:'flex-start'},onclick:ev=>{const b=ev.currentTarget;if(!b.dataset.s){b.dataset.s=1;b.textContent='برای حذف دوباره بزنید';return}sbFetch('/rest/v1/draw_entries?id=eq.'+e.id,{method:'DELETE',auth:true,headers:{Prefer:'return=minimal'}}).then(()=>{entries=entries.filter(x=>x!==e);drawList()}).catch(er=>toast('حذف نشد: '+er.message))}},I('trash',16),'حذف از قرعه‌کشی')))])};
+ const load=async()=>{list.innerHTML='';add(list,h('div',{class:'empty'},'در حال بارگیری…'));try{await loadAdminOrders()}catch(e){}
+  try{entries=(await sbFetch('/rest/v1/draw_entries?draw_id=eq.'+encodeURIComponent(D.id)+'&select=id,phone,name,created_at&order=created_at.asc&limit=2000',{auth:true}))||[];err=''}catch(e){err=e.message||'خطا'}drawList()};
+ const sel=h('select',{class:'in'},h('option',{value:'1'},'فقط خریدهای تأییدشده (پرداخت‌شده تا تحویل‌شده)'),h('option',{value:'0'},'هر سفارش غیرلغوشده'));sel.onchange=()=>{onlyPaid=sel.value==='1';drawList()};
+ drawList();drawRes();
+ return[card('برچسب قرعه‌کشی روی سایت',h('p',{},'یک برچسب شیشه‌ای بالای سایت نمایش داده می‌شود با تاریخ، شمارنده‌ی زنده و دکمه‌ی ثبت در قرعه‌کشی. فقط مشتری‌های واردشده‌ای که حداقل یک سفارش دارند می‌توانند ثبت کنند.'),
+   fld('وضعیت برچسب',onoff(D,'enabled','فعال (نمایش روی سایت)','غیرفعال')),fld('عنوان',tx(D,'title')),fld('متن توضیح',tx(D,'text',{area:true,rows:3})),
+   g2(fld('جایزه (اختیاری)',tx(D,'prize')),fld('تعداد برنده',tx(D,'winners',{num:true}))),fld('تاریخ و ساعت قرعه‌کشی',dateF(D,'date',null,'datetime-local')),
+   g2(fld('متن دکمه‌ی اصلی',tx(D,'btn')),fld('متن دکمه‌ی قرمز',tx(D,'cancel'))),
+   h('div',{class:'row'},h('button',{class:'btn sec',onclick:()=>{D.rev=(D.rev||0)+1;commit();toast('برچسب دوباره برای همه نمایش داده می‌شود')}},'نمایش دوباره برای کسانی که بستند'),
+    h('button',{class:'btn dg',onclick:e=>{const b=e.currentTarget;if(!b.dataset.s){b.dataset.s=1;b.textContent='برای شروع دوباره بزنید (نتیجه و ثبت‌نام‌های فعلی کنار می‌رود)';return}D.id=uid();D.rev=(D.rev||0)+1;D.result=[];commit();ADM.go('draw')}},'شروع قرعه‌کشی جدید'))),
+  card('شرکت‌کننده‌ها و انتخاب برنده',h('p',{},'اول «بارگیری» را بزنید تا ثبت‌نام‌ها و سفارش‌ها از سرور بیاید. انتخاب برنده تصادفی است و فقط بین کسانی انجام می‌شود که خرید دارند. بعد از انتخاب، «ذخیره و اعلام» نتیجه را با نام و شماره‌ی نیمه‌پنهان روی برچسب نشان می‌دهد.'),sel,
+   h('div',{class:'row'},h('button',{class:'btn sec',onclick:load},'بارگیری شرکت‌کننده‌ها'),h('button',{class:'btn',onclick:pickW},I('gift',18),'انتخاب برنده')),res,list),
+  card('راه‌اندازی (یک‌بار)',h('p',{},'برای ثبت‌نام در قرعه‌کشی این SQL را یک‌بار در Supabase (SQL Editor) اجرا کنید:'),h('small',{class:'fh',style:{direction:'ltr',textAlign:'left',display:'block',whiteSpace:'pre-wrap'}},DRAW_SQL),h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>copyText(DRAW_SQL)},'کپی SQL'))]},
 dash(){const rev=S.orders.filter(o=>['paid','processing','shipped','delivered'].includes(o.status)).reduce((a,o)=>a+o.total,0);
  return[card('خوش آمدید',h('p',{},'همه بخش‌های سایت از همین‌جا قابل تغییر است. تغییرات بلافاصله ذخیره و روی سایت اعمال می‌شود.'),
   h('div',{class:'stat'},[[S.products.length,'محصول'],[S.stories.length,'استوری'],[S.orders.length,'سفارش'],[S.orders.filter(o=>o.status==='new'||o.status==='paid').length,'سفارش نیازمند بررسی'],[S.users.length,'کاربر ثبت‌نام‌شده'],[money(rev),'فروش تأییدشده']].map(([n,l])=>h('div',{},h('b',{},typeof n==='number'?fa(n):n),h('span',{},l))))),
@@ -1406,7 +1520,7 @@ comments(){let rows=[],v2=true,noCol=false,editId=null,repId=null;const box=h('d
  return[h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>ADM.go('comments')},'بروزرسانی'),card('نظرات استوری‌ها',box)]},
 orders(){const l=S.orders;return[h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:async()=>{try{await loadAdminOrders();document.querySelector('.tb.on').click();toast('بروزرسانی شد')}catch(e){toast(e.message)}}},'بروزرسانی سفارش‌ها از سرور'),card('سفارش‌ها',l.length?h('div',{class:'lst'},l.map(o=>h('div',{class:'li'},h('div',{class:'li-h'},h('b',{style:{direction:'ltr'}},o.code),h('span',{class:'pill'},stName(o.status))),
   h('div',{style:{color:'var(--muted)',fontSize:'13px'}},`${o.name} · ${o.phone}`),h('div',{style:{fontSize:'13px'}},o.address),o.note?h('small',{class:'fh'},'توضیح: '+o.note):null,
-  h('div',{},o.items.map(i=>h('div',{style:{fontSize:'13px'}},`${i.title}${i.color?' ('+i.color+')':''} × ${fa(i.qty)}`))),h('b',{style:{color:'var(--accent2)'}},money(o.total)),o.payRef?h('small',{class:'fh'},'شماره پیگیری پرداخت: '+o.payRef):null,
+  h('div',{},o.items.map(i=>h('div',{style:{fontSize:'13px'}},`${i.title}${i.color?' ('+i.color+')':''} × ${fa(i.qty)}`))),h('b',{style:{color:'var(--accent2)'}},money(o.total)),o.discount?h('small',{class:'fh'},'کد تخفیف: '+(o.coupon?o.coupon.code+' ('+fa(o.coupon.percent)+'٪)':'')+' · مقدار تخفیف: '+money(o.discount)):null,o.payRef?h('small',{class:'fh'},'شماره پیگیری پرداخت: '+o.payRef):null,
   fld('وضعیت',pick(o,'status',STATUSES,()=>sbSaveOrder(o))),h('button',{class:'btn dg',style:{alignSelf:'flex-start'},onclick:e=>{const b=e.currentTarget;if(b.dataset.s){sbFetch('/rest/v1/orders?code=eq.'+encodeURIComponent(o.code),{method:'DELETE',auth:true}).then(()=>{S.orders=S.orders.filter(x=>x!==o);persist();document.querySelector('.tb.on').click()}).catch(er=>toast('حذف نشد: '+er.message))}else{b.dataset.s=1;b.textContent='برای حذف دوباره بزنید'}}},I('trash',16),'حذف سفارش')))):h('div',{class:'empty'},'هنوز سفارشی ثبت نشده است.')),
   card('کاربران ثبت‌نام‌شده',h('small',{class:'fh'},'حساب مشتری‌ها فعلاً روی دستگاه خودشان نگهداری می‌شود؛ نام و تلفن و آدرس هر مشتری داخل سفارش‌هایش هست.'))]},
 _users_old(){return[card('',S.users.length?h('div',{class:'lst'},S.users.map(u=>h('div',{class:'cmt'},h('span',{},`${uName(u)} · ${u.phone}${u.landline?' · ثابت: '+u.landline:''}${u.postal?' · کدپستی: '+u.postal:''}`),h('small',{},new Date(u.created).toLocaleDateString('fa-IR'))))):h('small',{class:'fh'},'کاربری ثبت‌نام نکرده است.'))]},
