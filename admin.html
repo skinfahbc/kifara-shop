@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
-<title>پنل مدیریت | کیف‌آرا</title>
+<title>پنل مدیریت | الای</title>
 <meta name="theme-color" content="#0e0c0a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
@@ -623,7 +623,7 @@ html{overflow-x:hidden;max-width:100%}
 </style>
 </head>
 <body>
-<div id="splash" role="status" aria-label="در حال بارگذاری"><div class="sp-in"><div class="sp-mark"><svg viewBox="0 0 64 64" fill="none" stroke-linecap="round" stroke-linejoin="round"><path class="sp-bag" d="M16 23h32l3.5 31h-39z"/><path class="sp-h" d="M24 23v-5a8 8 0 0116 0v5"/><circle class="sp-k" cx="32" cy="37" r="2.6"/></svg><i class="sp-ring"></i><i class="sp-ring r2"></i></div><b id="sp-name" class="sp-name">کیف‌آرا</b><div class="sp-bar"><i></i></div><small>در حال آماده‌سازی…</small></div></div>
+<div id="splash" role="status" aria-label="در حال بارگذاری"><div class="sp-in"><div class="sp-mark"><svg viewBox="0 0 64 64" fill="none" stroke-linecap="round" stroke-linejoin="round"><path class="sp-bag" d="M16 23h32l3.5 31h-39z"/><path class="sp-h" d="M24 23v-5a8 8 0 0116 0v5"/><circle class="sp-k" cx="32" cy="37" r="2.6"/></svg><i class="sp-ring"></i><i class="sp-ring r2"></i></div><b id="sp-name" class="sp-name">الای</b><div class="sp-bar"><i></i></div><small>در حال آماده‌سازی…</small></div></div>
 <div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
 <header class="hd" id="hd"></header>
 <main class="app" id="app"><div class="skel">در حال بارگذاری…</div></main>
@@ -708,25 +708,25 @@ function seed(){
  const stories=[st('جدید','کلکسیون پاییزی رسید ✨',0,0),st('تخفیف','تا پایان هفته ۱۰٪ تخفیف روی کیف‌های مجلسی',1,3),st('پرفروش','پرفروش‌ترین کیف ماه',4,0),st('مجلسی','برای شب‌های خاص',1,2),st('روزمره','هر روز، یک استایل',2,1),st('اداری','حرفه‌ای و شیک',3,0)];
  stories[0].comments=[{id:uid(),name:'سارا',text:'خیلی قشنگه! رنگ کاراملی موجوده؟',time:Date.now()-3.6e6}];
  return{v:1,
-  store:{logoH:52,name:'کیف‌آرا',tagline:'کیف‌های دست‌دوز، اصیل و شیک',logo:'',phone:'۰۲۱-۱۲۳۴۵۶۷۸',address:'تهران، خیابان ولیعصر',currency:'تومان',productsTitle:'جدیدترین محصولات',storiesHintDone:'همه دیده شد — بکش تا بقیه رو ببینی',copy:'© کیف‌آرا · همه حقوق محفوظ است'},
+  store:{logoH:52,name:'الای',tagline:'کیف‌های دست‌دوز، اصیل و شیک',logo:'',phone:'۰۲۱-۱۲۳۴۵۶۷۸',address:'تهران، خیابان ولیعصر',currency:'تومان',productsTitle:'جدیدترین محصولات',storiesHintDone:'همه دیده شد — بکش تا بقیه رو ببینی',copy:'© الای · همه حقوق محفوظ است'},
   theme:{accent:'#e0b374',accent2:'#f4dcae',bgDark:'#0e0c0a',bgLight:'#efe7d9',glass:12,blur:22,radius:24,mode:'light'},
   show:{hero:true,stories:true,intro:true,products:true,features:true,night:true,about:true,social:true},
   hero:[{id:uid(),img:heroArt('satchel','#b87a3d',0),badge:'کلکسیون جدید',title:'اصالت چرم، شیکی هر روز',sub:'کیف‌های دست‌دوز با ضمانت اصالت',productId:products[2].id},
         {id:uid(),img:heroArt('tote','#26221f',1),badge:'پرفروش هفته',title:'کیف دوشی آوین',sub:'فضای کافی برای همه‌چیز',productId:products[0].id},
         {id:uid(),img:heroArt('clutch','#7a2236',2),badge:'برای شب‌های خاص',title:'مجلسی‌ها رسیدند',sub:'کلاچ‌های زنجیردار با ارسال سریع',productId:products[1].id}],
-  menu:{banner:bannerArt(),title:'کیف‌آرا',sub:'منوی فروشگاه',items:[
+  menu:{banner:bannerArt(),title:'الای',sub:'منوی فروشگاه',items:[
     {id:uid(),label:'صفحه اصلی',icon:'home',color:'#4a7fe0',target:'view:home'},{id:uid(),label:'دسته‌بندی محصولات',icon:'grid',color:'#e0594f',target:'view:categories'},
     {id:uid(),label:'سبد خرید',icon:'bag',color:'#5fb35f',target:'view:cart'},{id:uid(),label:'پیگیری سفارش',icon:'truck',color:'#e8b93a',target:'view:track'},
     {id:uid(),label:'درباره فروشگاه',icon:'info',color:'#9a72d8',target:'about'},{id:uid(),label:'تماس با ما',icon:'phone',color:'#3fb5b5',target:'contact'}]},
   stories,categories:cats,products,
   features:[{id:uid(),icon:'bolt',title:'ارسال سریع',text:'ارسال به سراسر کشور طی ۲۴ تا ۴۸ ساعت.'},{id:uid(),icon:'shield',title:'ضمانت اصالت',text:'کیفیت تضمینی روی تمام محصولات.'},
     {id:uid(),icon:'gift',title:'بسته‌بندی هدیه',text:'جعبه و کیسه‌ی مخصوص بدون هزینه.'},{id:uid(),icon:'undo',title:'۷ روز بازگشت',text:'ضمانت بازگشت کالا تا ۷ روز.'}],
-  about:{kicker:'یک انتخاب کامل',introTitle:'با کیف‌آرا آشنا شو',introText:'کیف‌آرا انتخاب کاملی برای علاقه‌مندان به کیف چرم است؛ از کلاچ‌های مجلسی تا کیف‌های اداری، با کیفیتی که حسش می‌کنی.',
-    title:'کیف‌آرا',text:'طراحی‌شده برای کسانی که به جزئیات اهمیت می‌دهند و دنبال یک استایل متفاوت‌اند.',nightTitle:'حالت شب',nightHint:'لمس کن برای فعال‌سازی'},
+  about:{kicker:'یک انتخاب کامل',introTitle:'با الای آشنا شو',introText:'الای انتخاب کاملی برای علاقه‌مندان به کیف چرم است؛ از کلاچ‌های مجلسی تا کیف‌های اداری، با کیفیتی که حسش می‌کنی.',
+    title:'الای',text:'طراحی‌شده برای کسانی که به جزئیات اهمیت می‌دهند و دنبال یک استایل متفاوت‌اند.',nightTitle:'حالت شب',nightHint:'لمس کن برای فعال‌سازی'},
   socials:[{id:uid(),icon:'instagram',name:'اینستاگرام',url:'https://instagram.com'},{id:uid(),icon:'telegram',name:'تلگرام',url:'https://t.me'},{id:uid(),icon:'whatsapp',name:'واتساپ',url:'https://wa.me/'}],
   links:[{id:uid(),label:'درباره ما',target:'about'},{id:uid(),label:'قوانین و مقررات',target:'url:https://example.com'},{id:uid(),label:'تماس با پشتیبانی',target:'contact'}],
   nav:[{id:'n1',label:'سبد خرید',icon:'bag',view:'cart'},{id:'n2',label:'دسته‌بندی',icon:'grid',view:'categories'},{id:'n3',label:'خانه',icon:'home',view:'home'},{id:'n4',label:'پیگیری خرید',icon:'truck',view:'track'},{id:'n5',label:'گفتگو',icon:'comment',view:'chat'}],
-  pay:{card:'6037-9917-0000-0000',owner:'به نام فروشگاه کیف‌آرا',bank:'بانک ملی',note:'پس از واریز، شماره پیگیری را ثبت کنید.',gateway:''},
+  pay:{card:'6037-9917-0000-0000',owner:'به نام فروشگاه الای',bank:'بانک ملی',note:'پس از واریز، شماره پیگیری را ثبت کنید.',gateway:''},
   orders:[],users:[],admin:{pass:'1234'}}}
 
 /* ---------- storage ---------- */
@@ -1024,120 +1024,7 @@ async function loadComments(force){if(CM.all&&!force&&Date.now()-CM.t<15000)retu
   CM.all=r||[];CM.t=Date.now()}catch(e){CM.all=CM.all||[]}return CM.all}
 const cmOf=sid=>(CM.all||[]).filter(c=>c.story_id===sid);
 function cmIdent(){const u=curUser();if(u)return{uid:u.id,tok:chTok(u)};if(!V.gid){V.gid='g'+uid()+uid();V.gtok=uid()+uid()+uid()+uid();saveV()}return{uid:V.gid,tok:V.gtok}}
-const SC_SQL=`alter table story_comments add column if not exists avatar text;
-alter table story_comments add column if not exists uid text;
-alter table story_comments add column if not exists tokh text;
-alter table story_comments add column if not exists is_admin boolean not null default false;
-alter table story_comments add column if not exists edited boolean not null default false;
-alter table story_comments add column if not exists reply_to text;
-alter table story_comments add column if not exists rname text;
-alter table story_comments add column if not exists rtext text;
-create or replace function sc_guard() returns trigger language plpgsql as $$
-begin
-  if coalesce(auth.role(), 'anon') <> 'authenticated' then
-    new.is_admin := false;
-    if new.uid = 'admin' then new.uid := null; end if;
-  end if;
-  return new;
-end $$;
-drop trigger if exists sc_guard_t on story_comments;
-create trigger sc_guard_t before insert on story_comments for each row execute function sc_guard();
-drop policy if exists "sc admin insert" on story_comments;
-drop policy if exists "sc admin update" on story_comments;
-create policy "sc admin insert" on story_comments for insert to authenticated with check (true);
-create policy "sc admin update" on story_comments for update to authenticated using (true) with check (true);
-create or replace function sc_edit(p_id text, p_uid text, p_tok text, p_text text) returns boolean
-language plpgsql security definer set search_path = public as $$
-declare n int;
-begin
-  update story_comments set text = left(trim(p_text), 300), edited = true
-   where id::text = p_id and uid = p_uid and is_admin = false and tokh is not null
-     and tokh = encode(sha256(convert_to(p_tok, 'UTF8')), 'hex')
-     and char_length(trim(p_text)) > 0;
-  get diagnostics n = row_count;
-  return n > 0;
-end $$;
-create or replace function sc_delete(p_id text, p_uid text, p_tok text) returns boolean
-language plpgsql security definer set search_path = public as $$
-declare n int;
-begin
-  delete from story_comments
-   where id::text = p_id and uid = p_uid and is_admin = false and tokh is not null
-     and tokh = encode(sha256(convert_to(p_tok, 'UTF8')), 'hex');
-  get diagnostics n = row_count;
-  return n > 0;
-end $$;
-grant execute on function sc_edit(text, text, text, text) to anon, authenticated;
-grant execute on function sc_delete(text, text, text) to anon, authenticated;
-revoke select on story_comments from anon, authenticated;
-grant select (id, story_id, name, text, avatar, created_at, uid, is_admin, edited, reply_to, rname, rtext) on story_comments to anon, authenticated;`;
 /* ---------- public chat room (Supabase table chat_messages) ---------- */
-const CHAT_SQL=`create table if not exists chat_messages (
-  id bigint generated always as identity primary key,
-  uid text,
-  name text not null,
-  avatar text,
-  text text not null default '',
-  image text,
-  is_admin boolean not null default false,
-  edited boolean not null default false,
-  tokh text,
-  created_at timestamptz not null default now()
-);
-alter table chat_messages add column if not exists image text;
-alter table chat_messages add column if not exists is_admin boolean not null default false;
-alter table chat_messages add column if not exists edited boolean not null default false;
-alter table chat_messages add column if not exists tokh text;
-alter table chat_messages add column if not exists reply_to bigint;
-alter table chat_messages add column if not exists rname text;
-alter table chat_messages add column if not exists rtext text;
-alter table chat_messages alter column text set default '';
-alter table chat_messages drop constraint if exists chat_messages_text_check;
-alter table chat_messages drop constraint if exists chat_text_ok;
-alter table chat_messages add constraint chat_text_ok check (char_length(text) <= 500 and (char_length(text) > 0 or image is not null));
-alter table chat_messages enable row level security;
-drop policy if exists "chat read" on chat_messages;
-drop policy if exists "chat insert" on chat_messages;
-drop policy if exists "chat admin insert" on chat_messages;
-drop policy if exists "chat admin update" on chat_messages;
-drop policy if exists "chat admin delete" on chat_messages;
-create policy "chat read" on chat_messages for select using (true);
-create policy "chat insert" on chat_messages for insert to anon, authenticated with check (is_admin = false);
-create policy "chat admin insert" on chat_messages for insert to authenticated with check (true);
-create policy "chat admin update" on chat_messages for update to authenticated using (true) with check (true);
-create policy "chat admin delete" on chat_messages for delete to authenticated using (true);
-revoke select on chat_messages from anon, authenticated;
-grant select (id, uid, name, avatar, text, image, is_admin, edited, created_at, reply_to, rname, rtext) on chat_messages to anon, authenticated;
-create or replace function chat_edit(p_id bigint, p_uid text, p_tok text, p_text text) returns boolean
-language plpgsql security definer set search_path = public as $$
-declare n int;
-begin
-  update chat_messages set text = left(trim(p_text), 500), edited = true
-   where id = p_id and uid = p_uid and is_admin = false and tokh is not null
-     and tokh = encode(sha256(convert_to(p_tok, 'UTF8')), 'hex')
-     and (char_length(trim(p_text)) > 0 or image is not null);
-  get diagnostics n = row_count;
-  return n > 0;
-end $$;
-create or replace function chat_delete(p_id bigint, p_uid text, p_tok text) returns boolean
-language plpgsql security definer set search_path = public as $$
-declare n int;
-begin
-  delete from chat_messages
-   where id = p_id and uid = p_uid and is_admin = false and tokh is not null
-     and tokh = encode(sha256(convert_to(p_tok, 'UTF8')), 'hex');
-  get diagnostics n = row_count;
-  return n > 0;
-end $$;
-grant execute on function chat_edit(bigint, text, text, text) to anon, authenticated;
-grant execute on function chat_delete(bigint, text, text) to anon, authenticated;
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('chat', 'chat', true, 3145728, array['image/jpeg','image/png','image/webp'])
-on conflict (id) do update set public = true, file_size_limit = 3145728, allowed_mime_types = array['image/jpeg','image/png','image/webp'];
-drop policy if exists "chat img upload" on storage.objects;
-drop policy if exists "chat img read" on storage.objects;
-create policy "chat img upload" on storage.objects for insert to anon, authenticated with check (bucket_id = 'chat');
-create policy "chat img read" on storage.objects for select using (bucket_id = 'chat');`;
 const STICKERS=['😍','😂','🥰','😎','🤩','😭','😡','🥳','👍','👏','🙏','💪','❤️','🔥','✨','🎉','🛍️','👜','💖','🌹','☕','🎁','😴','🤝'];
 const CH_OLD='id,uid,name,avatar,text,image,is_admin,edited,created_at';let CH_V2=true;const chCols=()=>CH_V2?CH_OLD+',reply_to,rname,rtext':CH_OLD;
 const chV2Err=e=>/reply_to|rname|rtext/i.test((e&&e.message)||'');
@@ -1328,65 +1215,6 @@ function courierSheet(code){const phone=(S.ship&&S.ship.phone)||S.store.phone||'
   tel?h('a',{class:'pbtn',href:'tel:'+tel,style:{textDecoration:'none',justifyContent:'center',marginBottom:'8px'}},I('phone',20),'تماس با فروشگاه'):null,
   h('button',{class:'pbtn ghost',type:'button',onclick:()=>close()},'متوجه شدم'));
  close=openModal(sh,'b')}
-const STOCK_SQL=`create table if not exists stock (
-  pid text primary key,
-  qty integer not null default 0 check (qty >= 0),
-  updated_at timestamptz not null default now()
-);
-alter table stock enable row level security;
-drop policy if exists "stock read" on stock;
-drop policy if exists "stock admin insert" on stock;
-drop policy if exists "stock admin update" on stock;
-drop policy if exists "stock admin delete" on stock;
-create policy "stock read" on stock for select using (true);
-create policy "stock admin insert" on stock for insert to authenticated with check (true);
-create policy "stock admin update" on stock for update to authenticated using (true) with check (true);
-create policy "stock admin delete" on stock for delete to authenticated using (true);
-
-create table if not exists stock_notify (
-  id bigint generated always as identity primary key,
-  pid text not null,
-  phone text not null,
-  name text not null default '',
-  created_at timestamptz not null default now(),
-  unique (pid, phone)
-);
-alter table stock_notify enable row level security;
-drop policy if exists "sn insert" on stock_notify;
-drop policy if exists "sn admin read" on stock_notify;
-drop policy if exists "sn admin delete" on stock_notify;
-create policy "sn insert" on stock_notify for insert to anon, authenticated with check (char_length(phone) = 11 and char_length(pid) <= 40);
-create policy "sn admin read" on stock_notify for select to authenticated using (true);
-create policy "sn admin delete" on stock_notify for delete to authenticated using (true);
-
-create or replace function stock_on_order() returns trigger
-language plpgsql security definer set search_path = public as $$
-declare it json;
-begin
-  for it in select * from json_array_elements(coalesce(new.data::json->'items', '[]'::json)) loop
-    update stock set qty = greatest(0, qty - coalesce((it->>'qty')::int, 1)), updated_at = now() where pid = it->>'pid';
-  end loop;
-  return new;
-end $$;
-drop trigger if exists stock_on_order_t on orders;
-create trigger stock_on_order_t after insert on orders for each row execute function stock_on_order();
-
-create or replace function stock_on_status() returns trigger
-language plpgsql security definer set search_path = public as $$
-declare it json; s int := 0;
-begin
-  if (old.data::json->>'status') is distinct from 'canceled' and (new.data::json->>'status') = 'canceled' then s := 1;
-  elsif (old.data::json->>'status') = 'canceled' and (new.data::json->>'status') is distinct from 'canceled' then s := -1;
-  end if;
-  if s <> 0 then
-    for it in select * from json_array_elements(coalesce(new.data::json->'items', '[]'::json)) loop
-      update stock set qty = greatest(0, qty + s * coalesce((it->>'qty')::int, 1)), updated_at = now() where pid = it->>'pid';
-    end loop;
-  end if;
-  return new;
-end $$;
-drop trigger if exists stock_on_status_t on orders;
-create trigger stock_on_status_t after update on orders for each row execute function stock_on_status();`;
 /* ---------- coupons ---------- */
 function cpState(code){const v=String(code||'').trim().toLowerCase();if(!v)return null;const c=(S.coupons||[]).find(x=>String(x.code||'').trim().toLowerCase()===v);
  if(!c)return{err:'کد تخفیف معتبر نیست'};if(c.active===false)return{err:'این کد تخفیف فعال نیست'};
@@ -1423,21 +1251,6 @@ function drawBanner(){let el=document.getElementById('draw-bn');const D=S.draw||
 function drawTick(){const el=document.getElementById('draw-bn');if(!el||!S||!S.draw)return;const end=Date.parse(S.draw.date)||0;if(!end)return;const ms=end-Date.now(),bs=el.querySelectorAll('.bn-cd b');
  if(ms<=0){if(bs.length)drawBanner();return}cdParts(ms).forEach((v,k)=>{if(bs[k])bs[k].textContent=fa(v)})}
 setInterval(drawTick,1000);
-const DRAW_SQL=`create table if not exists draw_entries (
-  id bigint generated always as identity primary key,
-  draw_id text not null,
-  phone text not null,
-  name text not null default '',
-  created_at timestamptz not null default now(),
-  unique (draw_id, phone)
-);
-alter table draw_entries enable row level security;
-drop policy if exists "draw insert" on draw_entries;
-drop policy if exists "draw admin read" on draw_entries;
-drop policy if exists "draw admin delete" on draw_entries;
-create policy "draw insert" on draw_entries for insert to anon, authenticated with check (char_length(phone) = 11 and char_length(draw_id) <= 40);
-create policy "draw admin read" on draw_entries for select to authenticated using (true);
-create policy "draw admin delete" on draw_entries for delete to authenticated using (true);`;
 /* ---------- admin ---------- */
 const commit=()=>{persist();refreshStore();sbQueue()};
 /* ----- server sync (admin only) ----- */
@@ -1524,7 +1337,7 @@ inventory(){let map=null,err='',nf={};const box=h('div',{class:'lst'}),LOW=3;
  const syncAll=async()=>{const rows=S.products.filter(p=>mAdm(p)==null).map(p=>({pid:p.id,qty:Math.max(0,Math.floor(+p.stock)||0),updated_at:new Date().toISOString()}));if(!rows.length)return toast('همه محصولات قبلاً ثبت شده‌اند');
   try{await upsert(rows);toast('همه محصولات ثبت شد');load()}catch(e){toast('ثبت نشد: '+e.message)}};
  const draw=()=>{box.innerHTML='';
-  if(err){add(box,h('div',{class:'li'},h('p',{style:{margin:0}},/relation|does not exist|schema cache|404/i.test(err)?'جدول موجودی ساخته نشده؛ SQL پایین همین صفحه را یک‌بار در Supabase اجرا کنید.':'بارگیری نشد: '+err)));return}
+  if(err){add(box,h('div',{class:'li'},h('p',{style:{margin:0}},/relation|does not exist|schema cache|404/i.test(err)?'جدول موجودی ساخته نشده.':'بارگیری نشد: '+err)));return}
   if(!map){add(box,h('div',{class:'empty'},'در حال بارگیری…'));return}
   add(box,S.products.length?S.products.map(p=>{const v=mAdm(p),cur=v!=null?v:(+p.stock||0),inp=h('input',{class:'in',type:'text',inputmode:'numeric',value:String(cur),style:{width:'110px',flex:'none',textAlign:'center',direction:'ltr',padding:'12px 6px',fontSize:'16px',fontWeight:'700'},onfocus:e=>e.target.select()}),w=nf[p.id]||[];
    const step=(l,d)=>h('button',{class:'btn sec',type:'button',onclick:()=>{inp.value=Math.max(0,(+normNum(inp.value)||0)+d)}},l);
@@ -1581,7 +1394,7 @@ draw(){const D=S.draw,okSt=['paid','processing','shipped','delivered'];let entri
  const pickW=()=>{const L=elig();if(!L.length)return toast('شرکت‌کننده‌ی واجد شرایطی نیست؛ اول «بارگیری» را بزنید');const n=Math.min(Math.max(1,Math.floor(+D.winners)||1),L.length),pool=L.slice(),w=[],rnd=m=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%m};
   for(let k=0;k<n;k++)w.push(pool.splice(rnd(pool.length),1)[0]);lastPick=w.map(e=>({name:e.name||'—',phone:e.phone}));drawRes()};
  const drawList=()=>{list.innerHTML='';
-  if(err){add(list,h('div',{class:'li'},h('p',{style:{margin:0}},/relation|does not exist|schema cache|404/i.test(err)?'جدول شرکت‌کننده‌ها ساخته نشده؛ SQL پایین همین صفحه را یک‌بار اجرا کنید.':'بارگیری نشد: '+err)));return}
+  if(err){add(list,h('div',{class:'li'},h('p',{style:{margin:0}},/relation|does not exist|schema cache|404/i.test(err)?'جدول شرکت‌کننده‌ها ساخته نشده.':'بارگیری نشد: '+err)));return}
   if(!entries){add(list,h('div',{class:'empty'},'برای دیدن شرکت‌کننده‌ها روی «بارگیری» بزنید.'));return}
   const E=elig();
   add(list,[h('small',{class:'fh'},'ثبت‌شده: '+fa(entries.length)+' نفر · واجد شرایط: '+fa(E.length)+' نفر'),...entries.map(e=>h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},h('b',{},e.name||'—'),' · ',e.phone),h('span',{class:'pill'},E.includes(e)?'واجد شرایط':'بدون خرید تأییدشده')),h('small',{class:'fh'},fa(nOrd(e.phone))+' سفارش · '+new Date(e.created_at).toLocaleString('fa-IR')),
@@ -1598,7 +1411,7 @@ draw(){const D=S.draw,okSt=['paid','processing','shipped','delivered'];let entri
     h('button',{class:'btn dg',onclick:e=>{const b=e.currentTarget;if(!b.dataset.s){b.dataset.s=1;b.textContent='برای شروع دوباره بزنید (نتیجه و ثبت‌نام‌های فعلی کنار می‌رود)';return}D.id=uid();D.rev=(D.rev||0)+1;D.result=[];commit();ADM.go('draw')}},'شروع قرعه‌کشی جدید'))),
   card('شرکت‌کننده‌ها و انتخاب برنده',h('p',{},'اول «بارگیری» را بزنید تا ثبت‌نام‌ها و سفارش‌ها از سرور بیاید. انتخاب برنده تصادفی است و فقط بین کسانی انجام می‌شود که خرید دارند. بعد از انتخاب، «ذخیره و اعلام» نتیجه را با نام و شماره‌ی نیمه‌پنهان روی برچسب نشان می‌دهد.'),sel,
    h('div',{class:'row'},h('button',{class:'btn sec',onclick:load},'بارگیری شرکت‌کننده‌ها'),h('button',{class:'btn',onclick:pickW},I('gift',18),'انتخاب برنده')),res,list),
-  card('راه‌اندازی (یک‌بار)',h('p',{},'برای ثبت‌نام در قرعه‌کشی این SQL را یک‌بار در Supabase (SQL Editor) اجرا کنید:'),h('small',{class:'fh',style:{direction:'ltr',textAlign:'left',display:'block',whiteSpace:'pre-wrap'}},DRAW_SQL),h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>copyText(DRAW_SQL)},'کپی SQL'))]},
+  ]},
 dash(){const rev=S.orders.filter(o=>['paid','processing','shipped','delivered'].includes(o.status)).reduce((a,o)=>a+o.total,0);
  return[card('خوش آمدید',h('p',{},'همه بخش‌های سایت از همین‌جا قابل تغییر است. تغییرات بلافاصله ذخیره و روی سایت اعمال می‌شود.'),
   h('div',{class:'stat'},[[S.products.length,'محصول'],[S.stories.length,'استوری'],[S.orders.length,'سفارش'],[S.orders.filter(o=>o.status==='new'||o.status==='paid').length,'سفارش نیازمند بررسی'],[S.users.length,'کاربر ثبت‌نام‌شده'],[money(rev),'فروش تأییدشده']].map(([n,l])=>h('div',{},h('b',{},typeof n==='number'?fa(n):n),h('span',{},l))))),
@@ -1648,7 +1461,7 @@ chat(){let rows=[],err='',pimg='',editId=null;const box=h('div',{class:'lst'});
  const startRep=c=>{rep=c;drawRp();inp.focus();inp.scrollIntoView({block:'center',behavior:'smooth'})};
  const delRow=(c,b)=>{if(!b.dataset.s){b.dataset.s=1;b.textContent='برای حذف دوباره بزنید';return}sbFetch('/rest/v1/chat_messages?id=eq.'+c.id,{method:'DELETE',auth:true,headers:{Prefer:'return=minimal'}}).then(()=>{rows=rows.filter(x=>x!==c);CH.msgs=CH.msgs.filter(x=>x.id!==c.id);draw();toast('حذف شد')}).catch(er=>toast('حذف نشد: '+er.message))};
  const saveRow=(c,v)=>{const t=v.trim().slice(0,500);if(!t&&!c.image)return toast('متن نمی‌تواند خالی باشد');sbFetch('/rest/v1/chat_messages?id=eq.'+c.id,{method:'PATCH',auth:true,headers:{Prefer:'return=minimal'},body:{text:t,edited:true}}).then(()=>{c.text=t;c.edited=true;editId=null;draw();toast('ذخیره شد')}).catch(er=>toast('ذخیره نشد: '+er.message))};
- const draw=()=>{box.innerHTML='';if(!CH_V2&&!err)box.append(h('div',{class:'li'},h('p',{style:{margin:'0 0 6px'}},'برای فعال‌شدن «پاسخ» (reply) این SQL را یک‌بار در Supabase (SQL Editor) اجرا کنید و بعد صفحه را رفرش کنید:'),h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>copyText(CHAT_SQL)},'کپی SQL')));if(err){box.append(h('div',{class:'li'},h('p',{style:{margin:'0 0 6px'}},'جدول گفتگو ساخته نشده یا به‌روز نیست ('+err+'). این SQL را یک‌بار در Supabase (SQL Editor) اجرا کنید:'),h('small',{class:'fh',style:{direction:'ltr',textAlign:'left',display:'block',whiteSpace:'pre-wrap'}},CHAT_SQL),h('button',{class:'btn sec',style:{alignSelf:'flex-start',marginTop:'8px'},onclick:()=>copyText(CHAT_SQL)},'کپی SQL')));return}
+ const draw=()=>{box.innerHTML='';if(err){box.append(h('div',{class:'li'},h('p',{style:{margin:0}},'بارگیری گفتگو ممکن نشد ('+err+')')));return}
   add(box,rows.length?rows.map(c=>{const isSt=String(c.text||'').startsWith('::st::'),ta=h('textarea',{class:'in',rows:3,maxlength:'500',value:c.text||''});
    return h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},cmAvatar(c),h('b',{},c.name),c.is_admin?h('span',{class:'adb'},'ادمین'):null),h('small',{class:'fh'},new Date(c.created_at).toLocaleString('fa-IR')+(c.edited?' · ویرایش‌شده':''))),
     rqEl(c,null),c.image?h('img',{class:'chi',src:c.image,alt:''}):null,
@@ -1666,20 +1479,20 @@ comments(){let rows=[],v2=true,noCol=false,editId=null,repId=null;const box=h('d
  const q=cols=>sbFetch('/rest/v1/story_comments?select='+cols+'&order=created_at.asc&limit=600',{auth:true});
  const fail=e=>toast(e.message||'خطا');
  const saveEdit=(c,v)=>{const tx=v.trim().slice(0,300);if(!tx)return toast('متن نمی‌تواند خالی باشد');
-  sbFetch('/rest/v1/story_comments?id=eq.'+enc(c.id)+'&select=id',{method:'PATCH',auth:true,headers:{Prefer:'return=representation'},body:{text:tx,edited:true}}).then(r=>{if(Array.isArray(r)&&!r.length)return toast('اجازه ویرایش ندارید (SQL را اجرا کنید)');c.text=tx;c.edited=true;editId=null;CM.t=0;draw();toast('ذخیره شد')}).catch(er=>toast('ذخیره نشد: '+er.message))};
+  sbFetch('/rest/v1/story_comments?id=eq.'+enc(c.id)+'&select=id',{method:'PATCH',auth:true,headers:{Prefer:'return=representation'},body:{text:tx,edited:true}}).then(r=>{if(Array.isArray(r)&&!r.length)return toast('اجازه ویرایش ندارید');c.text=tx;c.edited=true;editId=null;CM.t=0;draw();toast('ذخیره شد')}).catch(er=>toast('ذخیره نشد: '+er.message))};
  const sendRep=(c,v)=>{const tx=v.trim().slice(0,300);if(!tx)return toast('متن پاسخ را بنویسید');const lg=S.store.logo;
   sbFetch('/rest/v1/story_comments',{method:'POST',auth:true,headers:{Prefer:'return=minimal'},body:Object.assign({story_id:c.story_id,name:S.store.name||'ادمین',text:tx,uid:'admin',is_admin:true,reply_to:String(c.id),rname:c.name,rtext:rqSnip(c)},(lg&&/^https?:/.test(lg)&&lg.length<400)?{avatar:lg}:{})}).then(()=>{repId=null;CM.t=0;toast('پاسخ ارسال شد');load()}).catch(er=>toast('ارسال نشد: '+er.message))};
  const delRow=(c,b)=>{if(!b.dataset.s){b.dataset.s=1;b.textContent='برای حذف دوباره بزنید';return}
   sbFetch('/rest/v1/story_comments?id=eq.'+enc(c.id)+'&select=id',{method:'DELETE',auth:true,headers:{Prefer:'return=representation'}}).then(r=>{if(Array.isArray(r)&&!r.length)return toast('اجازه حذف ندارید');rows=rows.filter(x=>x!==c);CM.t=0;draw();toast('حذف شد')}).catch(er=>toast('حذف نشد: '+er.message))};
  const draw=()=>{box.innerHTML='';
-  if(!v2||noCol)box.append(h('div',{class:'li'},h('p',{style:{margin:'0 0 6px'}},'برای فعال‌شدن پاسخ، ویرایش و عکس نظردهنده‌ها این SQL را یک‌بار در Supabase (SQL Editor) اجرا کنید و بعد صفحه را رفرش کنید:'),h('small',{class:'fh',style:{direction:'ltr',textAlign:'left',display:'block',whiteSpace:'pre-wrap'}},SC_SQL),h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>copyText(SC_SQL)},'کپی SQL')));
+  
   add(box,rows.length?rows.slice().reverse().map(c=>{const st=S.stories.find(s=>s.id===c.story_id),ta=h('textarea',{class:'in',rows:3,maxlength:'300',value:c.text||''}),rt=h('textarea',{class:'in',rows:3,maxlength:'300',placeholder:'پاسخ ادمین…'}),busy=editId===c.id||repId===c.id;
    return h('div',{class:'li'},h('div',{class:'li-h'},h('span',{},cmAvatar(c),h('b',{},c.name),c.is_admin?h('span',{class:'adb'},'ادمین'):null),h('small',{class:'fh'},new Date(c.created_at).toLocaleString('fa-IR')+(c.edited?' · ویرایش‌شده':''))),
     h('small',{class:'fh'},'استوری: '+(st?st.title:'(حذف‌شده)')),rqEl(c,null),
     editId===c.id?[ta,h('div',{class:'row'},h('button',{class:'btn',onclick:()=>saveEdit(c,ta.value)},'ذخیره'),h('button',{class:'btn sec',onclick:()=>{editId=null;draw()}},'لغو'))]:h('p',{style:{margin:'4px 0'}},c.text),
     repId===c.id?[rt,h('div',{class:'row'},h('button',{class:'btn',onclick:()=>sendRep(c,rt.value)},'ارسال پاسخ'),h('button',{class:'btn sec',onclick:()=>{repId=null;draw()}},'لغو'))]:null,
     busy?null:h('div',{class:'row'},v2?h('button',{class:'btn sec',onclick:()=>{repId=c.id;editId=null;draw()}},I('comment',16),'پاسخ'):null,v2?h('button',{class:'btn sec',onclick:()=>{editId=c.id;repId=null;draw()}},I('edit',16),'ویرایش'):null,h('button',{class:'btn dg',onclick:e=>delRow(c,e.currentTarget)},I('trash',16),'حذف نظر')))}):h('div',{class:'empty'},'هنوز نظری ثبت نشده است.'))};
- const load=()=>q(CM_NEW).then(r=>{v2=true;CM_V2=true;return r}).catch(e=>{if(!cmV2Err(e))throw e;v2=false;CM_V2=false;return q(CM_OLD).catch(()=>{noCol=true;return q('id,story_id,name,text,created_at')})}).then(r=>{rows=r||[];draw()}).catch(e=>{box.innerHTML='';box.append(h('small',{class:'fh'},'بارگیری نشد: '+e.message+' (اگر جدول نظرها را نساخته‌اید SQL مربوطه را اجرا کنید)'))});
+ const load=()=>q(CM_NEW).then(r=>{v2=true;CM_V2=true;return r}).catch(e=>{if(!cmV2Err(e))throw e;v2=false;CM_V2=false;return q(CM_OLD).catch(()=>{noCol=true;return q('id,story_id,name,text,created_at')})}).then(r=>{rows=r||[];draw()}).catch(e=>{box.innerHTML='';box.append(h('small',{class:'fh'},'بارگیری نشد: '+e.message+''))});
  box.append(h('div',{class:'empty'},'در حال بارگیری…'));load();
  return[h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:()=>ADM.go('comments')},'بروزرسانی'),card('نظرات استوری‌ها',box)]},
 orders(){const l=S.orders;return[h('button',{class:'btn sec',style:{alignSelf:'flex-start'},onclick:async()=>{try{await loadAdminOrders();document.querySelector('.tb.on').click();toast('بروزرسانی شد')}catch(e){toast(e.message)}}},'بروزرسانی سفارش‌ها از سرور'),card('سفارش‌ها',l.length?h('div',{class:'lst'},l.map(o=>h('div',{class:'li'},h('div',{class:'li-h'},h('b',{style:{direction:'ltr'}},o.code),h('span',{class:'pill'},stName(o.status))),
