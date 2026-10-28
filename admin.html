@@ -323,6 +323,25 @@ select.in option{color:#222}
 .cmt{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;padding:8px 12px;border-radius:14px;background:var(--bg2)}
 .ta{width:100%;min-height:140px;direction:ltr;font-family:ui-monospace,monospace;font-size:12px}
 .li.li-x{border-inline-start:5px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--field));box-shadow:0 6px 18px rgba(0,0,0,.08)}
+
+/* ===== product card v2 ===== */
+.pc .im{aspect-ratio:4/5;border-radius:inherit}
+.pc .im::after{content:"";position:absolute;inset:auto 0 0 0;height:38%;background:linear-gradient(transparent,rgba(0,0,0,.28));pointer-events:none;opacity:.9}
+.pc .im .bd{position:absolute;top:10px;right:10px;z-index:2;border-radius:99px;padding:4px 12px;font-size:11.5px;letter-spacing:.2px;max-width:70%;box-shadow:0 4px 14px rgba(0,0,0,.22);backdrop-filter:blur(6px)}
+.pc .im .off{top:auto;right:10px;bottom:10px;z-index:2;padding:3px 10px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.pc .rb.fav{top:9px;left:9px;right:auto;bottom:auto;z-index:2;width:34px;height:34px;background:rgba(255,255,255,.88);backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,.2);transition:transform .2s}
+.pc .rb.fav svg{width:18px;height:18px}.pc .rb.fav:active{transform:scale(.88)}
+.pc .sold{top:auto;bottom:10px;left:50%;transform:translateX(-50%);white-space:nowrap}
+.pc .in{align-items:center;text-align:center;gap:0;padding:11px 10px 14px}
+.pc .in .old{min-height:1.4em;line-height:1.4}
+.pc .price{font-size:16px}
+.pgn{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;margin-top:26px;direction:rtl}
+.pgn button{min-width:40px;height:40px;padding:0 10px;border-radius:14px;display:grid;place-items:center;font-weight:700;font-size:14px;color:var(--ink);background:rgba(255,255,255,calc(var(--ga)*var(--gk)*1.2));border:1px solid rgba(255,255,255,.35);cursor:pointer;font-variant-numeric:tabular-nums;transition:transform .2s,background .2s}
+.pgn button:hover:not(:disabled){transform:translateY(-2px)}
+.pgn button.on{background:linear-gradient(135deg,var(--accent2),var(--accent));color:var(--on-accent);border-color:transparent;box-shadow:0 8px 18px rgba(0,0,0,.25)}
+.pgn button:disabled{opacity:.35;cursor:default}
+.pgn .dd{color:var(--muted);padding:0 2px}
+@media (max-width:420px){.pgn button{min-width:36px;height:36px;border-radius:12px}.pgn{gap:4px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media (min-width:700px){body{padding-top:0}.app{padding-top:90px}}
 
@@ -598,7 +617,7 @@ html{overflow-x:hidden;max-width:100%}
  .app.home{padding-top:12px}
  .app:not(.home){max-width:920px}
  .hd{width:min(100%,1180px)}
- .nv{width:min(100%,720px)}
+ .nv{width:min(100%,820px)}
  .app .hero,.app .hero:not(.has-st){height:clamp(540px,68vh,660px);margin-left:0;margin-right:0;border-radius:44px}
  .hero .tx{width:min(48%,460px)}
  .hero h2{font-size:54px}
@@ -609,7 +628,11 @@ html{overflow-x:hidden;max-width:100%}
  .cats{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
  .intro{padding:34px 40px}.intro h3{font-size:38px}
  .about{padding:38px}.about p{max-width:60ch}
- .night{max-width:560px;margin-inline:auto}
+ .night{max-width:820px;margin-inline:auto}
+ .app:not(.home){max-width:1180px}
+ .grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:18px}
+ .app:not(.home) .grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+ .pc h4{font-size:15px}
  .sec-h h3{font-size:23px}
  .sim .pc{flex-basis:180px}
  .ch{max-width:780px;margin-inline:auto;width:100%}
@@ -822,12 +845,13 @@ function cartBadge(){const n=V.cart.reduce((a,c)=>a+c.qty,0);document.querySelec
 function go(v){const was=cur;cur=v;if(v!=='categories'){catFilter=null;catQ=''}renderMain();setNav(was!==v);window.scrollTo({top:0})}
 
 /* ---------- views ---------- */
+let _ps=0;addEventListener('resize',()=>{const p=innerWidth>=900?10:8;if(_ps&&p!==_ps&&(cur==='home'||cur==='categories'))renderMain();_ps=p});_ps=innerWidth>=900?10:8;
 function renderMain(){const app=$('#app');app.innerHTML='';const v={home:homeView,categories:catView,cart:cartView,track:trackView,pay:payView,chat:chatView}[cur]||homeView;add(app,[v()]);app.classList.toggle('home',!!$('.hero',app));updateHd();revealInit()}
 function secHead(t,extra){return h('div',{class:'sec-h'},h('h3',{},t),extra)}
 function homeView(){const sh=S.show,A=S.about,hn=sh.hero?hero(sh.stories?storiesSec(true):null):null;return[
  hn,!hn&&sh.stories&&storiesSec(false),
  sh.intro&&h('section',{class:'intro glass'},h('span',{class:'star',html:ic('star',34)}),h('span',{class:'k'},A.kicker),h('h3',{},A.introTitle),h('p',{},A.introText)),
- sh.products&&h('section',{},secHead(S.store.productsTitle,h('button',{onclick:()=>go('categories')},'مشاهده همه')),h('div',{class:'grid'},S.products.map(pcard))),
+ sh.products&&h('section',{},secHead(S.store.productsTitle,h('button',{onclick:()=>go('categories')},'مشاهده همه')),(()=>{const sec=h('div',{});sec.append(pagedGrid(S.products,()=>sec.parentElement));return sec})()),
  sh.features&&h('section',{class:'feat'},S.features.map(f=>h('div',{class:'fc glass'},h('span',{class:'fi',html:ic(f.icon,26)}),h('b',{},f.title),h('span',{},f.text)))),
  sh.night&&h('button',{class:'night glass',onclick:toggleMode},h('span',{class:'ni',html:ic('moon',24)}),h('span',{class:'nt'},h('small',{},A.nightHint),h('b',{},A.nightTitle)),h('span',{class:'tg'+(isDark()?' on':'')})),
  sh.about&&h('section',{class:'about glass',id:'about'},h('h3',{},A.title),h('p',{},A.text),
@@ -865,12 +889,22 @@ function revealInit(){if(!fxOn('reveal')||!('IntersectionObserver'in window))ret
  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('rvd');io.unobserve(e.target)}}),{rootMargin:'0px 0px -6% 0px',threshold:.08});
  els.forEach((e,i)=>{if(e.closest('.hero'))return;e.classList.add('rv');e.style.setProperty('--d',(i%2)*70+'ms');io.observe(e)})}
 function skImg(src,alt){const i=h('img',{src,alt,loading:'lazy'}),ok=()=>i.parentNode&&i.parentNode.classList.remove('sk');i.addEventListener('load',ok);i.addEventListener('error',ok);if(i.complete&&src)setTimeout(ok,0);return i}
-function pcard(p){const d=disc(p),so=qtyOf(p)<=0;return h('article',{class:'pc glass'+(so?' so':''),onclick:()=>openProduct(p.id)},p.badge?h('div',{class:'bd k-'+(p.badgeKind||'gold')},p.badge):null,
- h('div',{class:'im'+(fxOn('skeleton')?' sk':'')},skImg(p.images[0]||'',p.title),d?h('span',{class:'off'},fa(d)+'٪ تخفیف'):null,
-  so?h('span',{class:'sold'},'اتمام موجودی'):null,so?h('button',{class:'rb add nf','aria-label':'خبرم کن',html:ic('bell'),onclick:e=>{e.stopPropagation();notifyMe(p)}}):h('button',{class:'rb add','aria-label':'افزودن به سبد',html:ic('plus'),onclick:e=>{e.stopPropagation();p.colors.length>1?openProduct(p.id):(addCart(p.id,p.colors[0]?.id||'',1)!==false&&(fly(e.currentTarget,p.images[0]),toast('به سبد اضافه شد')))}}),
+function pcard(p){const d=disc(p),so=qtyOf(p)<=0;return h('article',{class:'pc glass'+(so?' so':''),title:p.title,'aria-label':p.title,onclick:()=>openProduct(p.id)},
+ h('div',{class:'im'+(fxOn('skeleton')?' sk':'')},skImg(p.images[0]||'',p.title),p.badge?h('div',{class:'bd k-'+(p.badgeKind||'gold')},p.badge):null,d?h('span',{class:'off'},fa(d)+'٪ تخفیف'):null,
+  so?h('span',{class:'sold'},'اتمام موجودی'):null,
   h('button',{class:'rb fav'+(V.wish[p.id]?' on':''),'aria-label':'علاقه‌مندی',html:ic('heart',20),onclick:e=>{e.stopPropagation();toggleWish(p.id,e.currentTarget)}})),
- h('div',{class:'in'},cdEl(p,'sm'),h('h4',{},p.title),h('div',{class:'old'},p.oldPrice>p.price?money(p.oldPrice):''),h('div',{class:'price'},fa(p.price),' ',h('small',{},S.store.currency)),
-  p.colors.length>1?h('div',{class:'sw-row'},p.colors.slice(0,6).map(c=>h('i',{style:{background:c.hex}}))):null))}
+ h('div',{class:'in'},cdEl(p,'sm'),h('div',{class:'old'},p.oldPrice>p.price?money(p.oldPrice):''),h('div',{class:'price'},fa(p.price),' ',h('small',{},S.store.currency))))}
+function pageSize(){return innerWidth>=900?10:8}
+function pgList(n,cur,tot){const a=[];const add=x=>a.push(x);if(tot<=7){for(let i=1;i<=tot;i++)add(i)}else{add(1);let s=Math.max(2,cur-1),e=Math.min(tot-1,cur+1);if(cur<=3){s=2;e=4}if(cur>=tot-2){s=tot-3;e=tot-1}if(s>2)add('…');for(let i=s;i<=e;i++)add(i);if(e<tot-1)add('…');add(tot)}return a}
+function pagedGrid(list,scrollEl){let page=1;const box=h('div',{});
+ const draw=(jump)=>{box.innerHTML='';const ps=pageSize(),tot=Math.max(1,Math.ceil(list.length/ps));if(page>tot)page=tot;
+  const g=h('div',{class:'grid'},list.slice((page-1)*ps,page*ps).map(pcard));box.append(g);
+  if(tot>1){const go2=n=>()=>{page=n;draw(true)};const bar=h('nav',{class:'pgn','aria-label':'صفحه‌بندی'});
+   bar.append(h('button',{'aria-label':'صفحه قبل',disabled:page===1,html:ic('chl',16),onclick:go2(page-1)}));
+   pgList(list.length,page,tot).forEach(x=>bar.append(x==='…'?h('span',{class:'dd'},'…'):h('button',{class:x===page?'on':'','aria-current':x===page?'page':null,onclick:go2(x)},fa(x))));
+   bar.append(h('button',{'aria-label':'صفحه بعد',disabled:page===tot,html:ic('chr',16),onclick:go2(page+1)}));box.append(bar)}
+  if(jump){const t=scrollEl&&scrollEl();t&&t.scrollIntoView({behavior:'smooth',block:'start'});revealInit()}};
+ draw();return box}
 
 /* ---------- product sheet + gallery ---------- */
 function openProduct(id){const p=prod(id);if(!p)return;let sel=p.colors[0]?.id||'',qty=1;
@@ -955,7 +989,7 @@ function payView(){if(!payView.r){payView.r=1;setTimeout(()=>{payView.r=0;if(cur
  draw();return[h('h2',{class:'pg-h'},'پرداخت'),box]}
 function catView(){const q=h('input',{id:'c-q',placeholder:'جستجوی کیف…',value:catQ,'aria-label':'جستجو'}),res=h('div',{});
  const draw=()=>{res.innerHTML='';const l=S.products.filter(p=>(!catFilter||p.cat===catFilter)&&(!catQ||p.title.includes(catQ)));const c=S.categories.find(x=>x.id===catFilter);
-  add(res,[secHead(c?c.name:'همه محصولات',h('span',{style:{color:'var(--muted)',fontSize:'13px'}},fa(l.length)+' محصول')),l.length?h('div',{class:'grid'},l.map(pcard)):h('div',{class:'empty glass'},I('search',40),h('div',{},'محصولی پیدا نشد'))])};
+  add(res,[secHead(c?c.name:'همه محصولات',h('span',{style:{color:'var(--muted)',fontSize:'13px'}},fa(l.length)+' محصول')),l.length?pagedGrid(l,()=>res):h('div',{class:'empty glass'},I('search',40),h('div',{},'محصولی پیدا نشد'))])};
  q.addEventListener('input',()=>{catQ=q.value.trim();draw()});draw();
  return[h('h2',{class:'pg-h'},'دسته‌بندی‌ها'),h('div',{class:'search glass'},I('search',20),q),
   h('div',{class:'cats'},S.categories.map(c=>h('button',{class:'cat'+(catFilter===c.id?' on':''),onclick:e=>{catFilter=catFilter===c.id?null:c.id;e.currentTarget.parentNode.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));if(catFilter)e.currentTarget.classList.add('on');draw()}},h('img',{src:c.img,alt:''}),h('b',{},c.name)))),res]}
