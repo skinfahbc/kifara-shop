@@ -348,6 +348,24 @@ select.in option{color:#222}
 :root:not([data-theme="dark"]){--ink2:color-mix(in srgb,var(--accent) 36%,#2a1c08)}
 :root:not([data-theme="dark"]) .sho .p,:root:not([data-theme="dark"]) .cl-t span,:root:not([data-theme="dark"]) .big,:root:not([data-theme="dark"]) .btn.add,:root:not([data-theme="dark"]) .bn-a button,:root:not([data-theme="dark"]) .chm .chb b,:root:not([data-theme="dark"]) .rq b,:root:not([data-theme="dark"]) .sync[data-k=busy],:root:not([data-theme="dark"]) .sync[data-k=wait],:root:not([data-theme="dark"]) .price,:root:not([data-theme="dark"]) .pill,:root:not([data-theme="dark"]) .intro .k,:root:not([data-theme="dark"]) .night .nt small,:root:not([data-theme="dark"]) .sec-h a,:root:not([data-theme="dark"]) .sec-h button,:root:not([data-theme="dark"]) .links,:root:not([data-theme="dark"]) .tot .g,:root:not([data-theme="dark"]) .nv-b.on,:root:not([data-theme="dark"]) .nv-lab{color:var(--ink2)}
 :root:not([data-theme="dark"]) .sho .p{font-size:13.5px}
+
+/* top notification card (about / rules) */
+.tc-ov{position:fixed;inset:0;z-index:300;background:rgba(20,14,8,.45);backdrop-filter:blur(3px);opacity:0;transition:opacity .3s}
+.tc-ov.in{opacity:1}
+.tc{position:absolute;top:max(12px,env(safe-area-inset-top,0px));left:50%;width:min(600px,calc(100% - 24px));max-height:calc(100dvh - 36px);display:flex;flex-direction:column;border-radius:28px;overflow:hidden;transform:translate(-50%,-125%);transition:transform .45s cubic-bezier(.2,.9,.25,1.05);box-shadow:0 24px 60px rgba(0,0,0,.35);touch-action:pan-y}
+.tc.glass{background:var(--sheet,rgba(255,251,244,.97));backdrop-filter:blur(18px)}
+.tc-ov.in .tc{transform:translate(-50%,0)}
+.tc-im{flex:none;height:min(34vh,230px);position:relative;background:var(--bg2)}
+.tc-im img{width:100%;height:100%;object-fit:cover;display:block}
+.tc-im::after{content:"";position:absolute;inset:auto 0 0 0;height:40%;background:linear-gradient(transparent,rgba(0,0,0,.25))}
+.tc-h{display:flex;align-items:center;gap:10px;padding:16px 18px 6px}
+.tc-h b{flex:1;font-size:19px;line-height:1.5}
+.tc-ic{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent2),var(--accent));color:var(--on-accent);flex:none}
+.tc-x{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.07);color:var(--fg)}
+.tc-b{padding:6px 20px 8px;overflow:auto;-webkit-overflow-scrolling:touch}
+.tc-b p{margin:0;line-height:2;white-space:pre-line;color:var(--fg)}
+.tc-ok{margin:10px 18px 18px;align-self:stretch;justify-content:center}
+.tc-grab{width:44px;height:5px;border-radius:9px;background:rgba(0,0,0,.18);margin:0 auto 12px;flex:none}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media (min-width:700px){body{padding-top:0}.app{padding-top:90px}}
 
@@ -753,7 +771,7 @@ function seed(){
   about:{kicker:'یک انتخاب کامل',introTitle:'با الای آشنا شو',introText:'الای انتخاب کاملی برای علاقه‌مندان به کیف چرم است؛ از کلاچ‌های مجلسی تا کیف‌های اداری، با کیفیتی که حسش می‌کنی.',
     title:'الای',text:'طراحی‌شده برای کسانی که به جزئیات اهمیت می‌دهند و دنبال یک استایل متفاوت‌اند.',nightTitle:'حالت شب',nightHint:'لمس کن برای فعال‌سازی'},
   socials:[{id:uid(),icon:'instagram',name:'اینستاگرام',url:'https://instagram.com'},{id:uid(),icon:'telegram',name:'تلگرام',url:'https://t.me'},{id:uid(),icon:'whatsapp',name:'واتساپ',url:'https://wa.me/'}],
-  links:[{id:uid(),label:'درباره ما',target:'about'},{id:uid(),label:'قوانین و مقررات',target:'url:https://example.com'},{id:uid(),label:'تماس با پشتیبانی',target:'contact'}],
+  links:[{id:uid(),label:'درباره ما',target:'page:about'},{id:uid(),label:'قوانین و مقررات',target:'page:rules'},{id:uid(),label:'تماس با پشتیبانی',target:'call'}],
   nav:[{id:'n1',label:'سبد خرید',icon:'bag',view:'cart'},{id:'n2',label:'دسته‌بندی',icon:'grid',view:'categories'},{id:'n3',label:'خانه',icon:'home',view:'home'},{id:'n4',label:'پیگیری خرید',icon:'truck',view:'track'},{id:'n5',label:'گفتگو',icon:'comment',view:'chat'}],
   pay:{card:'6037-9917-0000-0000',owner:'به نام فروشگاه الای',bank:'بانک ملی',note:'پس از واریز، شماره پیگیری را ثبت کنید.',gateway:''},
   orders:[],users:[],admin:{pass:'1234'}}}
@@ -771,7 +789,20 @@ function applyFav(){try{const u=(S&&S.store&&S.store.favicon)||DEF_FAV;['fav','f
 const stExpired=s=>(+s.life>0)&&Date.now()>(+s.created||0)+(+s.life)*3600000;
 function purgeSt(st){if(!st||!Array.isArray(st.stories))return false;const n=st.stories.length;st.stories=st.stories.filter(s=>!stExpired(s));return st.stories.length!==n}
 function stLeft(s){if(!(+s.life>0))return'بدون انقضا؛ خودکار حذف نمی‌شود';const ms=(+s.created||0)+(+s.life)*3600000-Date.now();if(ms<=0)return'منقضی شده؛ با انتشار بعدی حذف می‌شود';const m=Math.ceil(ms/60000);if(m<60)return'باقی‌مانده: '+fa(m)+' دقیقه';const h2=Math.floor(m/60);if(h2<48)return'باقی‌مانده: '+fa(h2)+' ساعت';return'باقی‌مانده: '+fa(Math.floor(h2/24))+' روز'}
-function fixup(s){nmFix(s);(s.stories||[]).forEach(x=>{if(!x.created)x.created=Date.now();if(x.life==null)x.life=0});purgeSt(s);delete s.adminOpen;s.fx=Object.assign({reveal:true,skeleton:true,lift:true,haptic:true,fly:true},s.fx||{});s.store.logoH=s.store.logoH||52;s.orders=s.orders||[];s.users=s.users||[];s.admin=s.admin||{pass:'1234'};s.coupons=Array.isArray(s.coupons)?s.coupons:[];s.ship=Object.assign({phone:'',courierText:'هماهنگی ارسال با ادمین فروشگاه',methods:[{id:'post',title:'پست',price:60000,desc:'ارسال با پست معمولی (۵ تا ۱۰ روز کاری)',on:true},{id:'express',title:'پست پیشتاز',price:90000,desc:'ارسال سریع‌تر (۲ تا ۴ روز کاری)',on:true},{id:'courier',title:'پیک / اسنپ',price:0,desc:'هزینه طبق تعرفه، هماهنگی با ادمین فروشگاه',on:true,courier:true}]},s.ship||{});s.draw=Object.assign({enabled:false,id:uid(),rev:0,title:'قرعه‌کشی ویژه مشتریان',text:'با ثبت‌نام و خرید از فروشگاه در قرعه‌کشی شرکت کنید و برنده جایزه شوید.',prize:'',date:'',btn:'ثبت در قرعه‌کشی',cancel:'فعلاً نه',winners:1,result:[]},s.draw||{});
+const DEF_PAGES=()=>[{id:'about',title:'درباره ما',img:'',text:'الای یک فروشگاه تخصصی کیف‌های دست‌دوز و اصیل است. ما با دقت در جزئیات، چرم مرغوب و دوخت ماندگار، کیف‌هایی می‌سازیم و انتخاب می‌کنیم که هم شیک باشند و هم سال‌ها همراه شما بمانند.\n\nهدف ما این است که خرید برای شما ساده، مطمئن و دلپذیر باشد؛ از انتخاب محصول تا رسیدن بسته به دست شما. برای هر سؤالی از طریق بخش «تماس با پشتیبانی» در کنارتان هستیم.'},{id:'rules',title:'قوانین و مقررات',img:'',text:'۱. قیمت‌ها به تومان است و در لحظه ثبت سفارش، ملاک محاسبه قرار می‌گیرد.\n\n۲. سفارش پس از پرداخت و تایید، آماده‌سازی و ارسال می‌شود. زمان تحویل بسته به روش ارسال انتخابی متفاوت است.\n\n۳. در صورت مغایرت کالا با سفارش یا وجود ایراد ساخت، تا ۷ روز پس از تحویل می‌توانید درخواست مرجوعی بدهید. کالا باید استفاده‌نشده و با بسته‌بندی اصلی باشد.\n\n۴. اطلاعات شما (نام، شماره تماس و نشانی) فقط برای ثبت و ارسال سفارش استفاده می‌شود و در اختیار شخص ثالث قرار نمی‌گیرد.\n\n۵. ثبت سفارش به معنی پذیرش این قوانین است. متن این صفحه ممکن است به‌روزرسانی شود.'}];
+function openPage(id){const p=(S.pages||[]).find(x=>x.id===id)||(S.pages||[])[0];if(!p)return;let done=false,y0=0;
+ const body=h('div',{class:'tc-b'},h('p',{},p.text||'')),
+  card=h('div',{class:'tc glass',role:'dialog','aria-label':p.title},p.img?h('div',{class:'tc-im'},h('img',{src:p.img,alt:p.title})):null,
+   h('div',{class:'tc-h'},h('span',{class:'tc-ic',html:ic(id==='rules'?'shield':'info',18)}),h('b',{},p.title),h('button',{class:'tc-x','aria-label':'بستن',html:ic('close',18),onclick:()=>cl()})),
+   body,h('button',{class:'btn tc-ok',onclick:()=>cl()},'متوجه شدم')),
+  ov=h('div',{class:'tc-ov',onclick:e=>{if(e.target===ov)cl()}},card);
+ function cl(){if(done)return;done=true;ov.classList.remove('in');setTimeout(()=>{ov.remove();const k=stack.indexOf(o);if(k>-1)stack.splice(k,1);if(!stack.length&&!$('.sv,.lb,.adm'))document.body.classList.remove('lock')},420)}
+ const o={ov,close:cl};stack.push(o);document.body.append(ov);document.body.classList.add('lock');
+ card.addEventListener('touchstart',e=>{y0=e.touches[0].clientY},{passive:true});
+ card.addEventListener('touchend',e=>{if(y0-e.changedTouches[0].clientY>70&&body.scrollTop<=0||y0-e.changedTouches[0].clientY>70&&body.scrollHeight<=body.clientHeight)cl()},{passive:true});
+ requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('in')))}
+function callSupport(){const n=normNum(S.store.phone);if(!n){toast('شماره پشتیبانی هنوز ثبت نشده');return}location.href='tel:'+n}
+function fixup(s){nmFix(s);if(!Array.isArray(s.pages)||!s.pages.length)s.pages=DEF_PAGES();(s.links||[]).forEach(l=>{if(l.target==='about')l.target='page:about';else if(/^url:https?:\/\/example\.com\/?$/.test(l.target||'')&&/قوانین/.test(l.label||''))l.target='page:rules';else if(l.target==='contact')l.target='call'});(s.stories||[]).forEach(x=>{if(!x.created)x.created=Date.now();if(x.life==null)x.life=0});purgeSt(s);delete s.adminOpen;s.fx=Object.assign({reveal:true,skeleton:true,lift:true,haptic:true,fly:true},s.fx||{});s.store.logoH=s.store.logoH||52;s.orders=s.orders||[];s.users=s.users||[];s.admin=s.admin||{pass:'1234'};s.coupons=Array.isArray(s.coupons)?s.coupons:[];s.ship=Object.assign({phone:'',courierText:'هماهنگی ارسال با ادمین فروشگاه',methods:[{id:'post',title:'پست',price:60000,desc:'ارسال با پست معمولی (۵ تا ۱۰ روز کاری)',on:true},{id:'express',title:'پست پیشتاز',price:90000,desc:'ارسال سریع‌تر (۲ تا ۴ روز کاری)',on:true},{id:'courier',title:'پیک / اسنپ',price:0,desc:'هزینه طبق تعرفه، هماهنگی با ادمین فروشگاه',on:true,courier:true}]},s.ship||{});s.draw=Object.assign({enabled:false,id:uid(),rev:0,title:'قرعه‌کشی ویژه مشتریان',text:'با ثبت‌نام و خرید از فروشگاه در قرعه‌کشی شرکت کنید و برنده جایزه شوید.',prize:'',date:'',btn:'ثبت در قرعه‌کشی',cancel:'فعلاً نه',winners:1,result:[]},s.draw||{});
  if(!s.navChat){s.navChat=1;if(Array.isArray(s.nav)&&!s.nav.some(n=>n.view==='chat')){const i=s.nav.findIndex(n=>n.view==='pay');if(i>=0)s.nav[i]={id:s.nav[i].id,label:'گفتگو',icon:'comment',view:'chat'}}}
  return s}
 async function loadState(){let s=await dbGet();HAD_CACHE=!!(s&&s.v===1);if(!s||s.v!==1)s=seed();if(s.mv!==2){s.theme.mode='light';s.mv=2}fixup(s);S=s;persist()}
@@ -835,7 +866,7 @@ const uInit=u=>uName(u).trim()[0]||'؟';
 const avEl=(u,cls)=>h('span',{class:'av'+(cls?' '+cls:'')},u&&u.avatar?h('img',{src:u.avatar,alt:''}):(u?uInit(u):I('user',24)));
 function openUrl(u){const a=h('a',{href:u,target:'_blank',rel:'noopener'});document.body.append(a);a.click();a.remove()}
 function runTarget(t){if(!t)return;
- if(t.startsWith('view:'))return go(t.slice(5));if(t==='about'){go('home');setTimeout(()=>{const e=$('#about');e&&e.scrollIntoView({behavior:'smooth',block:'center'})},120);return}
+ if(t.startsWith('page:'))return openPage(t.slice(5));if(t==='call'||t==='contact')return callSupport();if(t.startsWith('view:'))return go(t.slice(5));if(t==='about'){go('home');setTimeout(()=>{const e=$('#about');e&&e.scrollIntoView({behavior:'smooth',block:'center'})},120);return}
  if(t==='contact')return openContact();if(t.startsWith('url:'))return openUrl(t.slice(4));if(t.startsWith('product:'))return openProduct(t.slice(8));if(t==='login')return openAuth()}
 const ago=ts=>{const m=Math.round((Date.now()-ts)/6e4);return m<1?'همین الان':m<60?fa(m)+' دقیقه پیش':m<1440?fa(Math.round(m/60))+' ساعت پیش':fa(Math.round(m/1440))+' روز پیش'};
 const normNum=s=>String(s||'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g,'');
@@ -1343,7 +1374,7 @@ function onoff(o,k,on='فعال',off='غیرفعال',cb){const s=h('select',{cl
 const card=(t,...k)=>h('section',{class:'ac glass'},t?h('h3',{},t):null,...k);
 const g2=(...k)=>h('div',{class:'g2'},...k);
 const ICON_OPTS=Object.keys(ICONS).map(k=>[k,k]);
-const TARGETS=()=>[['view:home','صفحه اصلی'],['view:categories','دسته‌بندی'],['view:cart','سبد خرید'],['view:track','پیگیری سفارش'],['view:pay','پرداخت'],['view:chat','گفتگوی همگانی'],['about','درباره فروشگاه'],['contact','تماس با ما'],['login','ورود / ثبت‌نام'],...S.products.map(p=>['product:'+p.id,'محصول: '+p.title])];
+const TARGETS=()=>[['view:home','صفحه اصلی'],['view:categories','دسته‌بندی'],['view:cart','سبد خرید'],['view:track','پیگیری سفارش'],['view:pay','پرداخت'],['view:chat','گفتگوی همگانی'],['call','تماس تلفنی مستقیم با پشتیبانی'],['contact','کارت اطلاعات تماس'],['about','رفتن به کارت «درباره» صفحه اصلی'],...(S.pages||[]).map(p=>['page:'+p.id,'صفحه: '+p.title]),['login','ورود / ثبت‌نام'],...S.products.map(p=>['product:'+p.id,'محصول: '+p.title])];
 function targetF(o,k){const opts=TARGETS(),isUrl=String(o[k]||'').startsWith('url:');const s=pick(o,k,[...opts,['url:','آدرس اینترنتی…']]);if(isUrl)s.value='url:';
  const u=h('input',{class:'in',placeholder:'https://…',style:{direction:'ltr',display:isUrl?'':'none'},value:isUrl?o[k].slice(4):''});
  s.addEventListener('change',()=>{u.style.display=s.value==='url:'?'':'none';if(s.value==='url:')o[k]='url:'+u.value;commit()});u.addEventListener('input',()=>{o[k]='url:'+u.value;commit()});return h('div',{style:{display:'grid',gap:'8px'}},s,u)}
@@ -1478,6 +1509,7 @@ content(){const sh=S.show,A=S.about,L={hero:'اسلایدر',stories:'استور
   card('ویژگی‌ها',listEd(S.features,f=>[g2(fld('عنوان',tx(f,'title')),fld('آیکون',pick(f,'icon',ICON_OPTS))),fld('توضیح',tx(f,'text'))],()=>({id:uid(),icon:'star',title:'ویژگی جدید',text:''}),{title:f=>f.title,addLabel:'افزودن ویژگی'})),
   card('کارت حالت شب و درباره فروشگاه',g2(fld('عنوان حالت شب',tx(A,'nightTitle')),fld('توضیح حالت شب',tx(A,'nightHint'))),g2(fld('عنوان درباره',tx(A,'title'))),fld('متن درباره',tx(A,'text',{area:true}))),
   card('شبکه‌های اجتماعی',listEd(S.socials,s=>g2(fld('نام',tx(s,'name')),fld('آیکون',pick(s,'icon',[['instagram','اینستاگرام'],['telegram','تلگرام'],['whatsapp','واتساپ'],['youtube','یوتیوب'],['x','ایکس'],['mail','ایمیل'],['phone','تلفن'],['globe','وب‌سایت'],['link','لینک']])),fld('آدرس',tx(s,'url',{ph:'https://…'}))),()=>({id:uid(),icon:'link',name:'لینک جدید',url:'https://'}),{title:s=>s.name})),
+  card('صفحه‌های «درباره ما» و «قوانین و مقررات»',h('p',{},'با لمس لینک، این متن مثل یک کارت از بالای صفحه باز می‌شود. عکس بالای کارت اختیاری است. لینک‌های پایین صفحه را از کارت بعدی به این صفحه‌ها وصل کنید.'),listEd(S.pages,p=>[fld('عنوان',tx(p,'title')),fld('عکس بالای کارت (اختیاری)',imgField(p,'img',{max:1100,clearable:true})),fld('متن',tx(p,'text',{area:true,rows:9}))],()=>({id:uid(),title:'صفحه جدید',text:'',img:''}),{title:p=>p.title,addLabel:'افزودن صفحه',thumb:p=>p.img||'',collapse:true})),
   card('لینک‌های پایین صفحه',listEd(S.links,l=>g2(fld('عنوان',tx(l,'label')),fld('مقصد',targetF(l,'target'))),()=>({id:uid(),label:'لینک جدید',target:'about'}),{title:l=>l.label}))]},
 hero(){return[card('اسلایدر صفحه اصلی',h('p',{},'با کلیک روی هر اسلاید، کاربر به صفحه جزئیات محصول انتخاب‌شده می‌رود. هر ۵ ثانیه خودکار عوض می‌شود.'),
   listEd(S.hero,s=>[fld('تصویر',imgField(s,'img',{max:1600})),g2(fld('برچسب',tx(s,'badge')),fld('عنوان',tx(s,'title')),fld('زیرعنوان',tx(s,'sub')),fld('محصول مقصد',pick(s,'productId',prodOpts('بدون لینک (رفتن به دسته‌بندی)'))))],()=>({id:uid(),img:'',badge:'',title:'اسلاید جدید',sub:'',productId:''}),{title:s=>s.title,addLabel:'افزودن اسلاید'}))]},
